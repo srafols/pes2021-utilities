@@ -175,7 +175,24 @@ See full formula in `AGENTS.md:80-103`. Key points:
 
 ---
 
-## 9. Troubleshooting
+## 9. Design tokens (CSS variables)
+
+All look-and-feel values are defined in `:root` at the top of `<style>` in `index.html`. See `DESIGN_GUIDE.md` for full reference. Key variables:
+
+| Category | Examples |
+|----------|----------|
+| Backgrounds | `--bg-page`, `--bg-card`, `--bg-surface`, `--bg-hover` |
+| Text | `--text-primary`, `--text-secondary`, `--text-muted`, `--text-dim` |
+| Accent | `--accent`, `--accent-hover`, `--accent-glow` |
+| Borders | `--border`, `--border-light` |
+| Stat colors | `--stat-phy`, `--stat-tec`, `--stat-men`, `--stat-gk` |
+| Layout | `--radius-sm`, `--radius-md`, `--radius-lg`, `--shadow-card` |
+
+To change the theme, edit only the `:root` block.
+
+---
+
+## 10. Troubleshooting
 
 | Symptom | Likely cause |
 |---------|--------------|
@@ -188,7 +205,7 @@ See full formula in `AGENTS.md:80-103`. Key points:
 
 ---
 
-## 10. Verification checklist after changes
+## 11. Verification checklist after changes
 
 1. Run `python3 scripts/extract_teams.py` without errors.
 2. Verify file sizes: `data/light.json` ~3.9 MB, `data/full/*.json` 1.2–2.9 MB each.
