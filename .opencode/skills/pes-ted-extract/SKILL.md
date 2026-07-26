@@ -2,7 +2,7 @@
 name: pes-ted-extract
 description: |
   Use ONLY when the task involves PES 2021 .ted file parsing, decrypting, extracting player/team data,
-  regenerating ted_data.json/ted_data_light.js/ted_data_full.js, or fixing the index.html visualization.
+  regenerating data/ted_data.json/data/light.json/data/full/*.json, or fixing the index.html visualization.
   Use when working with patch folders, XOR decryption, bit-packed stat fields, or the OVR calculation formula.
   Do NOT use for general football discussion unrelated to .ted file format or extraction.
 ---
@@ -16,18 +16,16 @@ Full workflow from decryption to web rendering. All files in `/home/sergi/Escrip
 ## 1. Repo structure
 
 ```
-extract_teams.py        # Singular entrypoint
-index.html              # Raffle page + team panel (open directly, no server)
-ted_data.json           # Full extraction output (27 MB)
-ted_data_light.js       # Startup data (4.2 MB) — loaded via <script>
-ted_data_full.js        # Lazy-loaded per-player data (9.7 MB)
-TED_FORMAT.md           # Full .ted format reference (offsets, bitfields)
-BIT_PARSING.md          # LSB-first bit parsing convention
-AGENTS.md               # Agent guide (OVR, stats, gotchas)
-STATS_SCALE.md          # OVR scale and star thresholds
+scripts/extract_teams.py  # Decrypts .ted → JSON data files
+index.html                # Raffle page + team panel (needs HTTP server)
+data/
+  light.json              # Team list + player index (3.8 MB, loaded via fetch)
+  full/*.json             # Per-patch player data (~1-3 MB, lazy-loaded)
+docs/                     # Format docs (TED_FORMAT, BIT_PARSING, etc.)
+.opencode/                # Editor config + skills
 ```
 
-Three patch directories (`.ted` files inside, some nested).
+Five patch directories (`.ted` files inside, some nested).
 
 ---
 
@@ -35,7 +33,7 @@ Three patch directories (`.ted` files inside, some nested).
 
 ```python
 e = 5
-key = raw[69:80] + raw[48:69]  # 32-byte key from two slices
+key = raw[64+e:80] + raw[48:64+e]   # 32-byte key from two slices
 dec = bytearray(len(raw))
 dec[:80] = raw[:48] + b'\x00' * 32
 for i in range(80, len(raw)):
@@ -73,12 +71,14 @@ Skills: 48× 1-bit flags at `SKILL_BITS` in `extract_teams.py:95-103`.
 1. Drop the folder containing `.ted` files into the project root.
 2. Add its name to `TEAM_DIRS` in `extract_teams.py`:
    ```python
-   TEAM_DIRS = [
-       "BEST OF WORLD CUPS - 195 TEAMS - PES 2021",
-       "SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS",
-       "SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA",
-       "YOUR NEW PATCH",
-   ]
+    TEAM_DIRS = [
+        "BEST OF WORLD CUPS - 195 TEAMS - PES 2021",
+        "SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS",
+        "SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA",
+        "Super Patch 80s - Option File - PES 2021 - Mestre Kamika",
+        "SUPER PATCH 1990S - PES 2021 - OPTION FILE - MESTRE KAMIKA",
+        "YOUR NEW PATCH",
+    ]
    ```
 3. Regenerate data:
    ```bash
@@ -92,9 +92,9 @@ Skills: 48× 1-bit flags at `SKILL_BITS` in `extract_teams.py:95-103`.
 ## 5. Adding a new field to the extraction
 
 1. Find the correct byte/bit offset in `TED_FORMAT.md` or TEditor source.
-2. Add the `read_bitfield()` call in `extract_players()` (`extract_teams.py:118-174`).
-3. Add the compact key to the `full_entry["players"]` dict (lines 323-364).
-4. If needed for search, add to `player_index` (lines 366-374).
+2. Add the `read_bitfield()` call in `extract_players()` (`extract_teams.py:120-177`).
+3. Add the compact key to the `full_entry["players"]` dict (lines 369-410).
+4. If needed for search, add to `player_index` (lines 411-420).
 5. Update the frontend in `index.html` to read and display the new field.
 6. Regenerate: `python3 extract_teams.py`
 
@@ -155,23 +155,23 @@ See full formula in `AGENTS.md:80-103`. Key points:
 
 ## 8. Web visualization
 
-- `index.html` loads `ted_data_light.js` via `<script>` tag.
-- No server needed — open directly in browser (`file://`).
+- `index.html` loads `data/light.json` via `fetch()` at startup.
+- Requires an HTTP server — does NOT work opening `file://` directly.
 - Team panel opens on click (slide-in from right, 580 px).
 - Player modal uses Chart.js (cdn.jsdelivr.net/npm/chart.js@4.4.7).
-- Full player data lazily loaded: `loadFullData()` injects `<script src="ted_data_full.js">`.
+- Full player data lazily loaded: `loadFullData()` fetches `data/full/<patchId>.json`.
 
 ### Key frontend code locations (approximate — search the function name):
 
 | Feature | Function / pattern | Approx line |
 |---------|-------------------|-------------|
-| Skill decoding | `const bits=(pl.sh` | 1445 |
-| Foot display | `const footDir=pl.sf` | 1408 |
-| Player modal render | `renderPlayerModal` | 1402 |
-| Search filter | `doSearch` | 1186 |
-| Position tags | `renderPosTags` | 1111 |
-| Squad table render | `let html='<div class="panel-card"><h3>Plantilla</h3>` | 1294 |
-| Glossary render | `renderGlossary` | 1131 |
+| Skill decoding | `(pl.sl>>>0)&(1<<i)` | 1828 |
+| Foot display | `const footDir=pl.sf` | 1790 |
+| Player modal render | `renderPlayerModal` | 1784 |
+| Search filter | `doSearch` | 1459 |
+| Position tags | `renderPosTags` | 1214 |
+| Squad table render | `let html='<div class="panel-card"><h3>Plantilla</h3>` | 1708 |
+| Glossary render | `renderGlossary` | 1234 |
 
 ---
 
@@ -190,8 +190,8 @@ See full formula in `AGENTS.md:80-103`. Key points:
 
 ## 10. Verification checklist after changes
 
-1. Run `python3 extract_teams.py` without errors.
-2. Verify file sizes: light ~2.9 MB, full ~6.7 MB.
+1. Run `python3 scripts/extract_teams.py` without errors.
+2. Verify file sizes: `data/light.json` ~3.9 MB, `data/full/*.json` 1.2–2.9 MB each.
 3. Check key players (Messi, CR7, Neymar) have correct stats, position, foot.
 4. Open `index.html` in browser — verify search, filters, team panel, player modal.
 5. Check mobile layout at 640px and 400px widths.

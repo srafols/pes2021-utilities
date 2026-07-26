@@ -41,7 +41,7 @@ for i in range(80, len(raw)):
 
 (packed at various byte/bit offsets — see `STAT_FIELDS` in `extract_teams.py:31-39`)
 
-## Extracted player fields (ted_data_full.js — compact keys)
+## Extracted player fields (data/full/*.json — compact keys)
 
 | Full key | Compact | Type | Description |
 |----------|---------|------|-------------|
@@ -134,17 +134,17 @@ Vegeu `docs/STATS_SCALE.md` per més detall sobre escales i llindars.
 
 ```bash
 python3 scripts/extract_teams.py
-# Outputs: ted_data.json, ted_data_light.js, ted_data_full.js
+# Outputs: data/ted_data.json, data/light.json, data/full/*.json
 ```
 
 Takes ~2 minutes for all 693 files.
 
 ## Web page
 
-- `index.html` loads `ted_data_light.js` via `<script src=…>` (works on `file://`).
-- No server needed — open directly in a browser.
+- `index.html` loads `data/light.json` via `fetch()` at startup.
+- Requires an HTTP server — does NOT work on `file://`.
 - Team detail panel (slide‑in from right, 580 px) opens on click from team list or result cards.
-- Full per‑player data lazily loaded: `loadFullData()` injects `<script src="ted_data_full.js">` on first click.
+- Full per‑player data lazily loaded: `loadFullData()` fetches `data/full/<patchId>.json` on first click.
 - Language: Catalan.
 
 ## Features
@@ -169,9 +169,9 @@ Takes ~2 minutes for all 693 files.
 - Patch 3 has nested subdirectories (`01 - LEGENDS…/`, `02 - SELECOES…/`); `os.walk` handles this.
 - The `docs/TED_FORMAT.md` has exhaustive field tables for all bit-packed data; use it when adding new extraction fields.
 - Stats (7-bit), position proficiencies (2-bit), weakFoot (2-bit), form (3-bit), injury (2-bit), and skills (1-bit) all use the same `read_bitfield()` convention.
-- Skills are stored as compact bitmasks (`sl`/`sh`), not string arrays, saving ~1.3 MB in `ted_data_full.js`.
+- Skills are stored as compact bitmasks (`sl`/`sh`), not string arrays, saving ~1.3 MB in the full JSON files.
 - **`registeredPosition`** es llegeix directament del camp raw a byte 32 bit 13 (4 bits), no es calcula de les proficiencies. Això evita ~30% de discrepàncies contra la posició real del joc.
-- Position proficiencies (13×2-bit) are extracted but not included in `ted_data_full.js` (the derived `registeredPosition` is used instead).
+- Position proficiencies (13×2-bit) are extracted but not included in `data/full/*.json` (the derived `registeredPosition` is used instead).
 
 ## Player modal (search → Chart.js radar chart)
 
