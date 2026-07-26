@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PES 2021 · Football's Coming Home</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oswald,sans-serif;
+    background:#0a0f0a;
+    color:#f0f8f0;
+    min-height:100vh;
+    font-size:16px;line-height:1.5
+  }
+  ::-webkit-scrollbar{width:8px}
+  ::-webkit-scrollbar-track{background:#0a0f0a}
+  ::-webkit-scrollbar-thumb{background:#2e7d32;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#4caf50}
+
+  .pitch-line{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    pointer-events:none;z-index:0;
+    background:
+      repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(46,125,50,.08) 39px,rgba(46,125,50,.08) 40px);
+  }
+
+  .stadium-glow{
+    position:fixed;top:-30%;left:-30%;width:160%;height:160%;
+    pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.015) 0%,transparent 60%);
+  }
+
+  .container{max-width:1260px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+  header{
+    border-bottom:2px solid #1e2a1e;margin-bottom:28px;
+    position:relative
+  }
+  header::after{
+    content:'';position:absolute;bottom:-2px;left:10%;right:10%;
+    height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.15),transparent)
+  }
+  .header-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:24px 0;flex-wrap:wrap;gap:16px
+  }
+  .header-left{display:flex;align-items:center;gap:12px}
+  .header-left h1{
+    font-size:1.8rem;font-weight:800;
+    background:linear-gradient(135deg,#f0f8f0,#3b82f6);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    letter-spacing:-.5px
+  }
+  .header-left .ball{font-size:1.8rem}
+  .search-group{display:flex;flex-direction:column;gap:8px;flex:1;max-width:540px;min-width:260px}
+  .search-row{display:flex;gap:8px;align-items:stretch}
+  .search-box{
+    position:relative;flex:1;min-width:0
+  }
+  .search-filter-bar{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+    padding:6px 4px;min-height:0;overflow:hidden;
+    transition:all .2s
+  }
+  .search-filter-bar .sf-group{
+    display:flex;align-items:center;gap:6px;font-size:.78rem
+  }
+  .search-filter-bar .sf-group label{
+    color:#5a7a5a;text-transform:uppercase;letter-spacing:.5px;font-size:.65rem;font-weight:600
+  }
+  .search-filter-bar select{
+    font-size:.75rem;padding:5px 8px;min-width:90px;background:#141914;border-color:#2a3a2a;border-width:2px;border-radius:8px
+  }
+  .search-filter-bar .sf-count{
+    color:#4a5a4a;font-size:.7rem;margin-left:auto;font-family:monospace;white-space:nowrap;font-weight:500
+  }
+  .search-filter-bar .sf-skill-tag{
+    background:#1e2a1e;border:1px solid #3b82f6;border-radius:5px;padding:3px 8px;font-size:.68rem;color:#3b82f6;
+    display:inline-flex;align-items:center;gap:4px;font-weight:600
+  }
+  .search-filter-bar .sf-skill-clear{
+    background:none;border:none;color:#6a8a6a;cursor:pointer;font-size:.75rem;padding:0 3px;font-family:inherit
+  }
+  .search-filter-bar .sf-skill-clear:hover{color:#f0f8f0}
+  .search-box input{
+    width:100%;
+    background:#141914;border:2px solid #2a3a2a;border-radius:10px;
+    padding:11px 16px 11px 38px;color:#f0f8f0;font-size:.9rem;outline:none;
+    transition:border-color .2s,box-shadow .2s
+  }
+  .search-box input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  .search-box input::placeholder{color:#4a5a4a}
+  .search-box .s-icon{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    color:#4a5a4a;font-size:.95rem;pointer-events:none
+  }
+  .search-results{
+    position:absolute;top:100%;left:0;right:0;z-index:500;
+    background:#161e16;border:2px solid #2a3a2a;border-radius:10px;
+    margin-top:6px;max-height:420px;overflow-y:auto;display:none;
+    box-shadow:0 12px 40px rgba(0,0,0,.7)
+  }
+  .search-results.open{display:block}
+  .search-result-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;cursor:pointer;transition:background .15s;
+    border-bottom:1px solid #1e2a1e;font-size:.85rem
+  }
+  .search-result-item:last-child{border-bottom:none}
+  .search-result-item:hover{background:#1a261a}
+  .search-result-item .sr-name{color:#f0f8f0;font-weight:600;min-width:0;font-size:.88rem}
+  .search-result-item .sr-ovr{
+    font-family:monospace;color:#f0f8f0;font-weight:700;font-size:.95rem;width:38px;text-align:right;flex-shrink:0
+  }
+  .search-result-item .sr-pos{
+    color:#7a9a7a;font-size:.75rem;width:34px;flex-shrink:0;text-align:center;
+    background:#0a0f0a;border-radius:4px;padding:0 5px;font-weight:500
+  }
+  .search-result-item .sr-team{
+    color:#7a9a7a;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    flex:1;min-width:0;margin:0 4px;font-style:italic
+  }
+  .search-result-item .sr-foot{
+    width:16px;flex-shrink:0;text-align:center;font-size:.78rem;opacity:.7
+  }
+
+  .controls{
+    background:#141914;border-radius:14px;padding:24px;margin-bottom:24px;
+    border:2px solid #1e2a1e
+  }
+  .controls-row{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
+  .control-group{flex:1;min-width:170px}
+  .control-group label{
+    display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:1px;
+    color:#5a7a5a;margin-bottom:6px;font-weight:600
+  }
+  .patch-checkboxes{display:flex;flex-direction:column;gap:6px}
+  .patch-checkboxes label{
+    display:flex;align-items:center;gap:10px;cursor:pointer;
+    font-size:.88rem;text-transform:none;letter-spacing:0;color:#c8d8c8
+  }
+  .patch-checkboxes input[type=checkbox]{width:17px;height:17px;accent-color:#3b82f6;cursor:pointer}
+  .patch-checkboxes .count{color:#4a5a4a;font-size:.75rem}
+  select{
+    background:#1a221a;border:2px solid #2a3a2a;border-radius:10px;
+    padding:11px 14px;color:#f0f8f0;font-size:.95rem;outline:none;cursor:pointer;
+    min-width:110px;transition:border-color .2s,box-shadow .2s;
+    font-weight:500
+  }
+  select:hover{border-color:#4a6a4a}
+  select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+  select option{background:#1a221a;color:#f0f8f0;padding:6px}
+  .stars{color:#e8f0e8}
+
+  input[type=number]{
+    background:#1a221a;border:2px solid #2a3a2a;border-radius:10px;
+    padding:11px 14px;color:#f0f8f0;font-size:.95rem;width:80px;outline:none;
+    transition:border-color .2s;font-weight:500
+  }
+  input[type=number]:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  input[type=number]:hover{border-color:#4a6a4a}
+
+  .btn{
+    padding:11px 28px;border:none;border-radius:10px;font-size:1rem;font-weight:700;
+    cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:10px;
+    font-family:inherit;letter-spacing:.3px
+  }
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn-primary{
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#f0f8f0;
+    box-shadow:0 4px 16px rgba(59,130,246,.2);font-size:1.05rem;padding:12px 32px
+  }
+  .btn-primary:hover:not(:disabled){
+    transform:translateY(-2px);box-shadow:0 6px 28px rgba(59,130,246,.35)
+  }
+  .btn-primary:active:not(:disabled){transform:translateY(0)}
+  .btn-secondary{
+    background:#1e2a1e;color:#c8d8c8;border:2px solid #2a3a2a
+  }
+  .btn-secondary:hover:not(:disabled){background:#2a3a2a;color:#f0f8f0;border-color:#3a5a3a}
+  .btn-group{display:flex;gap:10px;align-items:flex-end}
+
+  .results{
+    background:#141914;border-radius:14px;padding:24px;margin-bottom:24px;
+    border:2px solid #1e2a1e;min-height:120px
+  }
+  .results h2{
+    font-size:.8rem;text-transform:uppercase;letter-spacing:1.5px;color:#5a7a5a;margin-bottom:14px;font-weight:600
+  }
+  .results-empty{
+    color:#4a5a4a;text-align:center;padding:30px 0;font-style:italic;font-size:.9rem
+  }
+  .results-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px
+  }
+  .result-card{
+    background:#0a0f0a;border-radius:10px;padding:16px 18px;cursor:pointer;
+    transition:all .25s;position:relative;overflow:hidden;
+    animation:fadeInUp .4s ease both;
+    border-left:4px solid #3b82f6;border-top:1px solid #1a221a;border-bottom:1px solid #1a221a;border-right:1px solid #1a221a
+  }
+  .result-card:nth-child(1){animation-delay:0s}
+  .result-card:nth-child(2){animation-delay:.08s}
+  .result-card:nth-child(3){animation-delay:.16s}
+  .result-card:nth-child(4){animation-delay:.24s}
+  .result-card:nth-child(5){animation-delay:.32s}
+  .result-card:nth-child(6){animation-delay:.4s}
+  .result-card:nth-child(7){animation-delay:.48s}
+  .result-card:nth-child(8){animation-delay:.56s}
+  .result-card:nth-child(9){animation-delay:.64s}
+  .result-card:nth-child(10){animation-delay:.72s}
+  .result-card:hover{
+    transform:translateY(-3px);box-shadow:0 8px 30px rgba(59,130,246,.15);
+    border-left-color:#3b82f6;border-color:#2a3a2a
+  }
+  .result-card .team-name{
+    font-size:1.05rem;font-weight:700;color:#f0f8f0;display:flex;align-items:center;gap:8px
+  }
+  .result-card .team-patch{font-size:.78rem;color:#6a8a6a;margin-top:4px}
+  .result-card .team-number{
+    position:absolute;top:10px;right:12px;
+    font-family:monospace;font-size:.7rem;color:#2a3a2a
+  }
+
+  .team-lists{margin-top:28px}
+  .patch-section{
+    background:#141914;border-radius:12px;margin-bottom:12px;
+    border:2px solid #1e2a1e;overflow:hidden
+  }
+  .patch-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;cursor:pointer;user-select:none;transition:background .2s
+  }
+  .patch-header:hover{background:#161e16}
+  .patch-header h3{font-size:1rem;font-weight:700;color:#c8d8c8}
+  .patch-header .meta{display:flex;align-items:center;gap:12px}
+  .patch-header .count-badge{
+    background:#0a0f0a;padding:3px 10px;border-radius:20px;font-size:.75rem;color:#6a8a6a;border:1px solid #1e2a1e
+  }
+  .patch-header .toggle-icon{color:#3a5a3a;font-size:1.2rem;transition:transform .2s}
+  .patch-header .toggle-icon.open{transform:rotate(180deg)}
+  .team-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;padding:0 20px 16px}
+  .team-grid.open{display:grid}
+  .team-item{
+    padding:6px 10px;border-radius:6px;font-size:.82rem;color:#8a9a8a;
+    transition:all .15s;cursor:pointer;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;font-weight:500
+  }
+  .team-item:hover{background:#1a261a;color:#c8d8c8}
+  .team-item.drawn{color:#3a4a3a;text-decoration:line-through}
+  .team-item.drawn::after{content:" \2713";color:#2e7d32}
+
+  @keyframes fadeInUp{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .spin-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;
+    z-index:1000;opacity:0;pointer-events:none;transition:opacity .4s
+  }
+  .spin-overlay.active{opacity:1;pointer-events:all}
+  .spin-overlay .spotlight{
+    position:fixed;top:50%;left:50%;width:700px;height:700px;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle,rgba(59,130,246,.08) 0%,transparent 70%);
+    pointer-events:none;border-radius:50%
+  }
+  .spin-box{
+    background:#0a0f0a;border:2px solid #1e2a1e;
+    border-radius:20px;padding:40px 56px;
+    text-align:center;max-width:90vw;position:relative;
+    box-shadow:0 0 60px rgba(0,0,0,.5)
+  }
+  .spin-box .spinning-label{
+    color:#5a7a5a;font-size:.85rem;text-transform:uppercase;letter-spacing:3px;
+    font-family:monospace;font-weight:600
+  }
+  .spin-box .spinning-name{
+    font-size:2.4rem;font-weight:800;min-height:2em;
+    display:flex;align-items:center;justify-content:center;
+    color:#f0f8f0;margin:20px 0;transition:all .3s;
+    font-family:Oswald,'Segoe UI',sans-serif;letter-spacing:2px
+  }
+  .spin-box .spinning-name.blur{filter:blur(6px);opacity:.5;color:#9aa99a}
+  .spin-box .spinning-name.reveal{
+    filter:blur(0);opacity:1;color:#f0f8f0;transform:scale(1);
+    text-shadow:0 0 60px rgba(59,130,246,.3),0 0 120px rgba(59,130,246,.1);
+    animation:glowPulse 1.2s ease infinite
+  }
+  @keyframes glowPulse{
+    0%,100%{text-shadow:0 0 60px rgba(59,130,246,.3),0 0 120px rgba(59,130,246,.1)}
+    50%{text-shadow:0 0 80px rgba(59,130,246,.5),0 0 160px rgba(59,130,246,.2)}
+  }
+  .spin-box .spinning-name.shake{
+    animation:shake .1s ease infinite
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-3px)}
+    75%{transform:translateX(3px)}
+  }
+  .spin-box .spinning-count{
+    font-size:.8rem;color:#3a5a3a;font-family:monospace;margin-top:6px
+  }
+  .spin-box .draw-step{
+    display:inline-block;width:12px;height:12px;border-radius:50%;
+    background:#1e2a1e;margin:0 4px;transition:all .3s
+  }
+  .spin-box .draw-step.active{background:#3b82f6;box-shadow:0 0 14px rgba(59,130,246,.6)}
+  .spin-box .draw-step.done{background:#2e7d32;box-shadow:0 0 8px rgba(46,125,50,.4)}
+
+  .team-panel-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.8);z-index:900;
+    display:none;justify-content:flex-end;backdrop-filter:blur(4px)
+  }
+  .team-panel-overlay.active{display:flex}
+  .team-panel{
+    width:640px;max-width:96vw;
+    background:#141914;border-left:2px solid #1e2a1e;
+    height:100vh;overflow-y:auto;padding:0;
+    animation:slideIn .3s ease
+  }
+  @keyframes slideIn{
+    from{transform:translateX(100%);opacity:0}
+    to{transform:translateX(0);opacity:1}
+  }
+  .panel-close{
+    position:sticky;top:12px;float:right;margin:14px;
+    background:#1e2a1e;border:none;color:#7a8a7a;
+    width:30px;height:30px;border-radius:50%;font-size:1.1rem;
+    cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;
+    transition:all .2s
+  }
+  .panel-close:hover{background:#2a3a2a;color:#f0f8f0}
+
+  .player-modal-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.85);z-index:1000;
+    display:none;align-items:center;justify-content:center;
+    backdrop-filter:blur(5px)
+  }
+  .player-modal-overlay.active{display:flex}
+  .player-modal{
+    width:560px;max-width:94vw;max-height:90vh;
+    background:#141914;border:2px solid #2a3a2a;border-radius:18px;
+    padding:0;overflow-y:auto;
+    animation:fadeInUp .3s ease;position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.6)
+  }
+  .player-modal .pm-content{padding:20px 24px 24px}
+  .player-modal .pm-header{
+    display:flex;align-items:center;gap:16px;
+    padding:20px 24px 0;margin-bottom:16px
+  }
+  .player-modal .pm-header .pm-name{font-size:1.3rem;font-weight:700;color:#f0f8f0}
+  .player-modal .pm-header .pm-name .wiki-link{color:#3b82f6;text-decoration:none;font-size:.85rem;margin-left:4px;opacity:.5;transition:opacity .15s}
+  .player-modal .pm-header .pm-name .wiki-link:hover{opacity:1}
+  .player-modal .pm-header .pm-pos{
+    background:#1e2a1e;border-radius:6px;padding:3px 10px;
+    font-size:.75rem;font-weight:700;color:#8a9a8a;text-transform:uppercase
+  }
+  .player-modal .pm-header .pm-pos-sec{color:#5a7a5a;font-weight:400;margin-left:4px;text-transform:none}
+  .player-modal .pm-header .pm-ovr{
+    margin-left:auto;font-size:2rem;font-weight:800;
+    color:#f0f8f0;line-height:1
+  }
+  .player-modal .pm-meta{
+    display:flex;flex-wrap:wrap;gap:4px 16px;
+    padding:0 24px;margin-bottom:14px;
+    font-size:.78rem;color:#6a8a6a
+  }
+  .player-modal .pm-meta span{white-space:nowrap}
+  .player-modal .wf-visual{display:inline-flex;align-items:center;gap:4px;cursor:default}
+  .player-modal .wf-foot-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:.6rem;font-weight:800;color:#0a0f0a}
+  .player-modal .wf-foot-label{font-size:.72rem;font-weight:600;color:#b0c0b0}
+  .player-modal .pm-chart-area{
+    background:#0a0f0a;border-radius:12px;border:1px solid #1e2a1e;
+    padding:16px;margin:0 24px 14px;display:flex;justify-content:center
+  }
+  .player-modal .pm-chart-area canvas{max-width:100%;max-height:320px}
+  .player-modal .pm-skills{
+    padding:0 24px 8px;display:flex;flex-wrap:wrap;gap:5px
+  }
+  .player-modal .pm-skills .skill-tag{
+    background:linear-gradient(135deg,#1a2a1a,#0f1f0f);border:1px solid #3b82f6;
+    border-radius:6px;padding:5px 12px;font-size:.78rem;color:#3b82f6;
+    font-weight:600;display:inline-flex;align-items:center;gap:4px;
+    box-shadow:0 0 6px rgba(59,130,246,.1);transition:all .15s
+  }
+  .player-modal .pm-skills .skill-tag::before{content:'★';font-size:.6rem;color:#3b82f6;opacity:.5}
+  .player-modal .pm-skills .skill-tag:hover{background:linear-gradient(135deg,#2a3a2a,#1a2a1a);box-shadow:0 0 10px rgba(59,130,246,.2)}
+  .player-modal .pm-stat-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;
+    padding:0 24px 14px
+  }
+  .player-modal .pm-stat-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:.78rem
+  }
+  .player-modal .pm-stat-row .pm-slabel{
+    width:80px;flex-shrink:0;color:#7a8a7a;text-align:right;font-size:.7rem;font-weight:500
+  }
+  .player-modal .pm-stat-row .pm-strack{
+    flex:1;height:6px;background:#0a0f0a;border-radius:3px;overflow:hidden
+  }
+  .player-modal .pm-stat-row .pm-strack .pm-sfill{
+    height:100%;border-radius:3px;transition:width .4s ease
+  }
+  .player-modal .pm-stat-row .pm-sfill.cat-phy{background:linear-gradient(90deg,#c0392b,#e74c3c)}
+  .player-modal .pm-stat-row .pm-sfill.cat-tec{background:linear-gradient(90deg,#2980b9,#3498db)}
+  .player-modal .pm-stat-row .pm-sfill.cat-men{background:linear-gradient(90deg,#6366f1,#818cf8)}
+  .player-modal .pm-stat-row .pm-sfill.cat-gk{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+  .player-modal .pm-stat-grid.gk-mode{grid-template-columns:1fr 1fr 1fr}
+  .player-modal .pm-stat-row .pm-sval{width:22px;text-align:right;font-weight:600;color:#f0f8f0;font-size:.72rem}
+  @keyframes fadeInUp{
+    from{opacity:0;transform:translateY(20px) scale(.96)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+  }
+
+  .panel-card{
+    background:#0a0f0a;border-radius:12px;margin:0 20px 14px;
+    border:1px solid #1e2a1e;padding:18px
+  }
+  .panel-card:first-of-type{margin-top:14px}
+  .panel-card h3{
+    font-size:.75rem;text-transform:uppercase;letter-spacing:1px;
+    color:#5a7a5a;margin-bottom:12px;font-weight:600
+  }
+  .panel-header-info{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:8px
+  }
+  .panel-header-info h2{
+    font-size:1.4rem;color:#f0f8f0;display:flex;align-items:center;gap:8px
+  }
+  .panel-header-info .ovr-big{
+    font-family:monospace;font-size:2.4rem;font-weight:700;color:#f0f8f0;
+    line-height:1;text-shadow:0 0 20px rgba(59,130,246,.15)
+  }
+  .panel-meta{
+    display:flex;flex-wrap:wrap;gap:10px;font-size:.82rem;color:#6a8a6a
+  }
+  .panel-meta span{
+    background:#141914;padding:3px 10px;border-radius:5px;border:1px solid #1a221a;font-weight:500
+  }
+
+  .strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .strength-col h4{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#5a7a5a;margin-bottom:8px;font-weight:600}
+  .strength-item{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:.8rem}
+  .strength-item .s-label{color:#8a9a8a;width:85px;text-align:right;flex-shrink:0;font-weight:500}
+  .strength-item .s-bar{flex:1;height:6px;background:#1a221a;border-radius:3px;overflow:hidden}
+  .strength-item .s-fill{height:100%;border-radius:3px;transition:width .5s}
+  .strength-item .s-val{width:28px;text-align:right;font-family:monospace;font-size:.75rem;color:#6a8a6a}
+
+  .formation-grid{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:400px;margin:0 auto
+  }
+  .formation-slot{
+    background:#161e16;border:1px solid #1e2a1e;border-radius:8px;
+    padding:7px 4px;text-align:center;font-size:.7rem
+  }
+  .formation-slot .f-name{color:#c8d8c8;font-weight:700;font-size:.73rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .formation-slot .f-pos{color:#5a7a5a;font-size:.63rem}
+  .formation-slot .f-shirt{color:#4a6a4a;font-size:.6rem}
+  .formation-slot.gk{border-color:#3b82f6;border-width:2px;grid-column:3}
+  .formation-slot.def{border-color:#4a7ad9}
+  .formation-slot.mid{border-color:#50c878}
+  .formation-slot.fwd{border-color:#e74c3c}
+  .formation-canvas{width:100%;max-width:400px;aspect-ratio:380/490;display:block;border-radius:12px;margin:0 auto}
+
+  .squad-table{width:100%;border-collapse:collapse;font-size:.82rem}
+  .squad-table th{
+    text-align:left;color:#5a7a5a;font-weight:600;
+    padding:7px 8px;border-bottom:2px solid #1a221a;
+    font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;
+    cursor:pointer;user-select:none;transition:color .15s
+  }
+  .squad-table th:hover{color:#8a9a8a}
+  .squad-table th .sort-arrow{color:#3a4a3a;margin-left:3px;font-size:.65rem}
+  .squad-table th.sort-asc .sort-arrow,.squad-table th.sort-desc .sort-arrow{color:#3b82f6}
+  .squad-table td{padding:6px 8px;border-bottom:1px solid #121a12;color:#aabaaa}
+  .squad-table tr{transition:background .1s}
+  .squad-table tr:hover td{background:#1a261a;color:#f0f8f0;cursor:pointer}
+  .squad-table .s-number{color:#4a5a4a;width:30px;font-family:monospace;font-size:.75rem}
+  .squad-table .s-name{color:#d0e0d0;font-weight:600}
+  .squad-table .s-pos{color:#6a8a6a;font-size:.72rem}
+  .squad-table .s-skills{color:#8aaa7a;text-align:center;width:30px;font-family:monospace;font-size:.78rem;font-weight:600}
+  .squad-table .s-ovr{text-align:right;width:44px}
+  .squad-table .s-ovr .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:.72rem;font-weight:700;line-height:1.4}
+  .squad-table .s-ovr .badge.elite{color:#1a1a0a;background:linear-gradient(135deg,#fbbf24,#d97706);box-shadow:0 0 6px rgba(251,191,36,.4)}
+  .squad-table .s-ovr .badge.high{color:#f0f8f0;background:#3b82f6}
+  .squad-table .s-ovr .badge.mid{color:#d0e8d0;background:#2a4a2a}
+  .squad-table .s-stat{color:#6a8a6a;font-size:.7rem;text-align:right}
+  .squad-table .s-stat .bar{display:inline-block;height:4px;background:#1a221a;border-radius:2px;width:40px;vertical-align:middle;margin-right:4px}
+  .squad-table .s-stat .bar-fill{display:block;height:100%;border-radius:2px;background:#3b82f6}
+  .squad-table .s-stat .stat-val{vertical-align:middle;font-family:monospace;font-size:.72rem}
+
+  .skeleton{background:linear-gradient(90deg,#141914 25%,#1a221a 50%,#141914 75%);background-size:200% 100%;animation:shimmer 1.2s ease infinite;border-radius:6px}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .skeleton-line{height:14px;margin-bottom:10px;width:100%}
+  .skeleton-line.w60{width:60%}
+  .skeleton-line.w40{width:40%}
+  .skeleton-block{height:120px;margin-bottom:10px}
+  .skeleton-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .spinner-mini{display:inline-block;width:14px;height:14px;border:2px solid #1e2a1e;border-top-color:#3b82f6;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .search-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center}
+  .search-filters select{font-size:.8rem;padding:6px 10px;min-width:auto}
+  .search-filters .filter-label{font-size:.7rem;color:#5a7a5a;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+  .no-results{text-align:center;padding:20px;color:#4a5a4a;font-size:.9rem;font-style:italic}
+
+  .skill-glossary-btn{
+    background:none;border:2px solid #2a3a2a;border-radius:10px;
+    color:#8a9a8a;padding:11px 14px;cursor:pointer;font-size:.88rem;
+    transition:all .2s;white-space:nowrap;font-family:inherit;
+    font-weight:500
+  }
+  .skill-glossary-btn:hover{color:#f0f8f0;border-color:#3b82f6;background:rgba(59,130,246,.05)}
+
+  .skill-glossary-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;z-index:1100;
+    background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px)
+  }
+  .skill-glossary-overlay.active{display:flex}
+  .skill-glossary{
+    background:#141914;border:2px solid #2a3a2a;border-radius:16px;
+    padding:28px 32px;max-width:680px;width:92vw;max-height:82vh;overflow-y:auto;
+    position:relative;animation:fadeInUp .3s ease;
+    box-shadow:0 20px 60px rgba(0,0,0,.6)
+  }
+  .skill-glossary h2{font-size:1.15rem;color:#f0f8f0;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+  .skill-glossary-close{
+    position:sticky;top:0;float:right;background:#1e2a1e;border:none;
+    color:#8a9a8a;width:30px;height:30px;border-radius:50%;font-size:1.1rem;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:-30px;transition:all .15s
+  }
+  .skill-glossary-close:hover{background:#2a3a2a;color:#f0f8f0}
+  .skill-glossary .gl-cat{
+    font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;
+    color:#5a7a5a;margin:14px 0 8px;padding-top:10px;border-top:2px solid #1a221a;font-weight:600
+  }
+  .skill-glossary .gl-cat:first-child{border-top:none;margin-top:0}
+  .skill-glossary-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+  .skill-glossary-grid .gl-skill{
+    background:#0a0f0a;border:1px solid #1e2a1e;border-radius:8px;
+    padding:8px 10px;cursor:pointer;
+    transition:all .15s
+  }
+  .skill-glossary-grid .gl-skill:hover{background:#1a261a;border-color:#3b82f6}
+  .skill-glossary-grid .gl-skill.active{background:#0a1a2a;border-color:#3b82f6;box-shadow:0 0 8px rgba(59,130,246,.15)}
+  .skill-glossary-grid .gl-skill.active .gl-name{color:#3b82f6}
+  .contr-grid{display:grid;gap:3px;margin-bottom:6px}
+  .contr-row{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:#0a0f0a;border-radius:6px;border:1px solid #1a221a}
+  .contr-row:hover{background:#121a12}
+  .contr-action{color:#d0e0d0;font-size:.78rem}
+  .contr-btn{color:#3b82f6;font-family:monospace;font-size:.82rem;font-weight:600;white-space:nowrap;margin-left:12px}
+  .contr-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.72rem;color:#8a9a8a;background:#0a0f0a;border-radius:8px;padding:8px 12px;border:1px solid #1a221a}
+  .contr-legend b{color:#aabaaa}
+  .skill-glossary-grid .gl-skill .gl-idx{
+    font-size:.6rem;color:#4a5a4a;margin-right:4px;font-family:monospace;
+    background:#141914;border-radius:3px;padding:0 5px
+  }
+  .skill-glossary-grid .gl-skill .gl-name{
+    font-size:.78rem;color:#d8e0d8;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:4px
+  }
+  .skill-glossary-grid .gl-skill .gl-sub{
+    font-size:.62rem;color:#4a5a4a;font-style:italic;margin-bottom:4px
+  }
+  .skill-glossary-grid .gl-skill .gl-desc{
+    font-size:.68rem;color:#7a8a7a;line-height:1.3
+  }
+
+  .skill-filter-area{
+    display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 4px;align-items:center
+  }
+  .skill-filter-area .sf-label{
+    font-size:.7rem;color:#5a7a5a;text-transform:uppercase;letter-spacing:.5px;margin-right:6px;font-weight:600
+  }
+  .skill-filter-tag{
+    background:#0a0f0a;border:1px solid #1e2a1e;border-radius:5px;
+    padding:3px 8px;font-size:.72rem;color:#6a8a6a;cursor:pointer;
+    transition:all .15s;font-family:inherit;font-weight:500
+  }
+  .skill-filter-tag:hover{background:#1a261a;color:#c8d8c8}
+  .skill-filter-tag.active{background:#1e2a1e;border-color:#3b82f6;color:#3b82f6}
+  .pos-tags{display:flex;flex-wrap:wrap;gap:4px}
+  .pos-tag{
+    background:#0a0f0a;border:1px solid #1e2a1e;border-radius:5px;
+    padding:3px 8px;font-size:.72rem;color:#6a8a6a;cursor:pointer;
+    transition:all .15s;font-family:inherit;font-weight:500
+  }
+  .pos-tag:hover{background:#1a261a;color:#c8d8c8}
+  .pos-tag.active{background:#1e2a1e;border-color:#3b82f6;color:#3b82f6}
+  .pos-tag.all-tag{border-color:#2a4a2a;color:#5a8a5a}
+  .pos-tag.all-tag.active{border-color:#3b82f6;color:#3b82f6;background:#1e2a1e}
+  .skill-filter-clear{
+    background:none;border:none;color:#4a5a4a;font-size:.7rem;cursor:pointer;
+    padding:3px 8px;font-family:inherit
+  }
+  .skill-filter-clear:hover{color:#8a9a8a}
+
+  @media(max-width:768px){
+    .header-left h1{font-size:1.3rem}
+    .controls{padding:18px}
+    .controls-row{gap:14px}
+    .spin-box{padding:30px 24px}
+    .spin-box .spinning-name{font-size:1.8rem}
+    .player-modal .pm-stat-grid{grid-template-columns:1fr 1fr;gap:4px 12px}
+    .squad-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .squad-table{font-size:.74rem}
+    .squad-table th,.squad-table td{padding:5px 6px}
+    .squad-table .s-stat .bar{width:28px}
+    .formation-grid{max-width:320px}
+  }
+  @media(max-width:640px){
+    .container{padding:0 12px}
+    .header-row{flex-direction:column;align-items:stretch}
+    .search-group{max-width:none}
+    .header-left{flex-shrink:0}
+    .header-left h1{font-size:1.2rem;letter-spacing:0}
+    .header-left .ball{font-size:1.3rem}
+    .controls{padding:14px;border-radius:10px}
+    .controls-row{flex-direction:column;gap:10px}
+    .control-group{min-width:100%}
+    .control-group select,.control-group input[type=number]{width:100%;min-width:0}
+    .btn-group{width:100%;flex-wrap:wrap}
+    .btn-group .btn{flex:1;justify-content:center;padding:10px 16px;font-size:.9rem}
+    .results{padding:16px;border-radius:10px}
+    .results-grid{grid-template-columns:1fr}
+    .result-card{padding:12px 14px}
+    .result-card .team-name{font-size:.9rem}
+    .team-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+    .team-item{font-size:.75rem;padding:5px 8px}
+    .patch-section{border-radius:10px}
+    .patch-header{padding:12px 14px}
+    .patch-header h3{font-size:.85rem}
+    .team-grid{padding:0 14px 12px;gap:4px}
+    .spin-box{padding:24px 16px;border-radius:14px}
+    .spin-box .spinning-name{font-size:1.3rem;margin:14px 0}
+    .spin-box .spotlight{width:400px;height:400px}
+    .team-panel{width:100vw;max-width:100vw}
+    .panel-card{margin:0 12px 10px;padding:14px}
+    .panel-card:first-of-type{margin-top:10px}
+    .panel-close{margin:10px}
+    .strength-grid{grid-template-columns:1fr}
+    .strength-item .s-label{width:70px;font-size:.72rem}
+    .player-stats .ps-chart-area{flex-direction:column;align-items:center}
+    .player-stats .ps-chart-area canvas{width:180px;height:180px}
+    .formation-grid{max-width:280px;gap:4px}
+    .formation-slot{padding:5px 3px;font-size:.65rem}
+    .formation-slot .f-name{font-size:.68rem}
+    .search-filter-bar{flex-wrap:wrap;gap:6px}
+    .search-filter-bar .sf-group select{min-width:0;font-size:.7rem;padding:4px 6px}
+    .search-filter-bar .sf-group label{font-size:.6rem}
+    .pos-tag{font-size:.65rem;padding:2px 6px}
+    .skill-glossary{padding:16px 12px;width:96vw;max-height:86vh;border-radius:12px}
+    .skill-glossary h2{font-size:.9rem}
+    .skill-glossary-grid{grid-template-columns:1fr}
+    .skill-glossary-grid .gl-skill{padding:6px 8px}
+    .skill-glossary-grid .gl-skill .gl-name{font-size:.72rem}
+    .skill-glossary-grid .gl-skill .gl-desc{font-size:.63rem}
+    .squad-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .squad-table{font-size:.7rem}
+    .squad-table th,.squad-table td{padding:4px 5px}
+    .squad-table .s-number{width:22px;font-size:.65rem}
+    .squad-table .s-skills{width:20px;font-size:.65rem}
+    .squad-table .s-stat .bar{width:20px}
+    .squad-table .s-stat .stat-val{font-size:.65rem}
+    .panel-header-info h2{font-size:1rem}
+    .contr-btn{font-size:.7rem}
+    .contr-action{font-size:.7rem}
+    .contr-row{padding:4px 7px}
+    .panel-header-info .ovr-big{font-size:1.5rem}
+    .panel-meta{font-size:.72rem;gap:6px}
+    .panel-meta span{padding:2px 8px}
+    .player-modal{max-width:100vw;border-radius:14px 14px 0 0;max-height:94vh}
+    .player-modal .pm-content{padding:12px 14px 16px}
+    .player-modal .pm-header{padding:14px 14px 0;gap:10px;margin-bottom:10px}
+    .player-modal .pm-header .pm-name{font-size:1rem}
+    .player-modal .pm-header .pm-ovr{font-size:1.4rem}
+    .player-modal .pm-meta{padding:0 14px;font-size:.72rem;gap:2px 10px}
+    .player-modal .pm-meta span{white-space:normal}
+    .player-modal .pm-chart-area{margin:0 14px 8px;padding:8px}
+    .player-modal .pm-chart-area canvas{max-height:220px}
+    .player-modal .pm-stat-grid{padding:0 14px 8px;grid-template-columns:1fr;gap:3px}
+    .player-modal .pm-stat-grid.gk-mode{grid-template-columns:1fr 1fr}
+    .player-modal .pm-stat-row .pm-slabel{width:65px;font-size:.65rem}
+    .player-modal .pm-stat-row .pm-sval{font-size:.68rem}
+    .player-modal .pm-skills{padding:0 14px 4px}
+    .player-modal .pm-skills .skill-tag{font-size:.7rem;padding:4px 8px}
+    .sr-foot{font-size:.7rem}
+  }
+  @media(max-width:400px){
+    .search-row{flex-wrap:wrap}
+    .search-row .skill-glossary-btn{width:100%;text-align:center}
+    .search-filter-bar .sf-group select{font-size:.65rem;padding:3px 5px;min-width:50px}
+    .search-filter-bar .sf-group label{font-size:.55rem}
+    .spin-box .spinning-name{font-size:1.1rem}
+    .result-card .team-name{font-size:.82rem}
+    .controls{padding:10px}
+    .header-left h1{font-size:1rem}
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="pitch-line"></div>
+<div class="stadium-glow"></div>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <div class="header-left">
+        <span class="ball">⚽</span>
+        <h1>PES 2021 · Football's Coming Home</h1>
+      </div>
+      <div class="search-group">
+        <div class="search-row">
+          <div class="search-box" id="searchBox">
+            <span class="s-icon">&#x1F50D;</span>
+            <input type="text" id="searchInput" placeholder="Cerca jugador per nom..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+          </div>
+          <button class="skill-glossary-btn" onclick="toggleSkillGlossary()">&#x1F4D6; Guia</button>
+          <button class="skill-glossary-btn" onclick="toggleControls()">&#x1F3AE; Controls</button>
+        </div>
+        <div class="search-filter-bar" id="searchFilterBar">
+          <div class="sf-group">
+            <label>Posició</label>
+            <div class="pos-tags" id="searchPosArea"></div>
+          </div>
+           <div class="sf-group">
+            <label>Patch</label>
+            <select id="searchPatchFilter"><option value="all">Tots</option></select>
+          </div>
+          <div class="sf-group">
+            <label>Peu</label>
+            <select id="searchFootFilter">
+              <option value="all">Tots</option>
+              <option value="0">Dretà</option>
+              <option value="1">Esquerrà</option>
+            </select>
+          </div>
+          <div id="searchSkillArea"></div>
+          <span class="sf-count" id="searchCount"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="controls-row">
+      <div class="control-group">
+        <label>Patches</label>
+        <div class="patch-checkboxes" id="patchCheckboxes"></div>
+      </div>
+      <div class="control-group">
+        <label>Nivell</label>
+        <select id="levelSelect"><option value="0">Aleatori</option><option value="1">★1</option><option value="2">★★2</option><option value="3">★★★3</option><option value="4" selected>★★★★4</option><option value="5">★★★★★5</option></select>
+      </div>
+      <div class="control-group">
+        <label>Equips</label>
+        <input type="number" id="numDraw" value="1" min="1" max="20">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btnDraw">Sortejar</button>
+        <button class="btn btn-secondary" id="btnReset">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <h2>Resultats</h2>
+    <div class="results-empty" id="resultsEmpty">Fes clic a "Sortejar" per començar</div>
+    <div class="results-grid" id="resultsGrid"></div>
+  </div>
+
+  <div class="team-lists" id="teamLists"></div>
+</div>
+
+<div class="skill-glossary-overlay" id="skillGlossaryOverlay" onclick="if(event.target===this)closeSkillGlossary()">
+  <div class="skill-glossary" id="skillGlossaryContent">
+    <button class="skill-glossary-close" onclick="closeSkillGlossary()">&times;</button>
+    <h2>&#x1F4D6; Guia d'habilitats</h2>
+    <div id="glossaryInner"></div>
+  </div>
+</div>
+
+<div class="skill-glossary-overlay" id="controlsOverlay" onclick="if(event.target===this)closeControls()">
+  <div class="skill-glossary" id="controlsContent">
+    <button class="skill-glossary-close" onclick="closeControls()">&times;</button>
+    <h2>&#x1F3AE; Controls PS4 — PES 2021</h2>
+    <div id="controlsInner"></div>
+  </div>
+</div>
+
+<div class="spin-overlay" id="spinOverlay">
+  <div class="spotlight"></div>
+  <div class="spin-box">
+    <div class="spinning-label">SORTEIG EN CURS</div>
+    <div class="spinning-name blur" id="spinName">—</div>
+    <div class="spinning-count" id="spinCount"></div>
+    <div style="margin-top:8px" id="drawSteps"></div>
+  </div>
+</div>
+
+<div class="team-panel-overlay" id="teamPanelOverlay">
+  <div class="team-panel" id="teamPanel">
+    <button class="panel-close" id="panelClose">&times;</button>
+    <div id="panelContent"><div class="panel-card"><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-block"></div></div></div>
+  </div>
+</div>
+
+<div class="player-modal-overlay" id="playerModalOverlay">
+  <div class="player-modal" id="playerModal">
+    <button class="panel-close" onclick="closePlayerModal()">&times;</button>
+    <div id="playerModalContent"></div>
+  </div>
+</div>
+
+<script>
+const PATCH_IDS=['bestWorldCups','superLeague','superPatch','superPatch80s','superPatch90s'];
+const PATCH_NAMES={bestWorldCups:'BEST OF WORLD CUPS - 195 TEAMS',superLeague:'SUPER LEAGUE - 194 CLASSIC TEAMS',superPatch:'SUPER PATCH - 303 TEAMS (250 Legends + 53 Internationals)',superPatch80s:'SUPER PATCH 80s',superPatch90s:'SUPER PATCH 1990s'};
+const PATCH_FULLNAMES={bestWorldCups:'BEST OF WORLD CUPS - 195 TEAMS - PES 2021',superLeague:'SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS',superPatch:'SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA',superPatch80s:'Super Patch 80s - Option File - PES 2021 - Mestre Kamika',superPatch90s:'SUPER PATCH 1990S - PES 2021 - OPTION FILE - MESTRE KAMIKA'};
+const FULL_TO_FOLDER_ID={'BEST OF WORLD CUPS - 195 TEAMS - PES 2021':'bestWorldCups','SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS':'superLeague','SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA':'superPatch','Super Patch 80s - Option File - PES 2021 - Mestre Kamika':'superPatch80s','SUPER PATCH 1990S - PES 2021 - OPTION FILE - MESTRE KAMIKA':'superPatch90s'};
+let TED_DATA=null,TED_FULL={},ready=false;
+fetch('data/light.json').then(r=>r.json()).then(d=>{TED_DATA=d;ready=true;if(window._initOnReady)init()});
+const POS_NAMES=['GK','CB','LB','RB','DMF','CMF','LMF','RMF','AMF','LWF','RWF','SS','CF'];
+const SKILL_NAMES=['scissorsFeint','doubleTouch','flipFlap','marseilleTurn','sombrero','crossOverTurn','cutBehindAndTurn','scotchMove','stepOnSkillControl','headingSkill','longRangeDrive','chipShotControl','longRangeShooting','knuckleShot','dippingShot','risingShot','acrobaticFinishing','heelTrick','firstTimeShot','oneTouchPass','throughPassing','weightedPass','pinpointCrossing','outsideCurler','rabona','noLookPass','lowLoftedPass','gkLowPunt','gkHighPunt','longThrow','gkLongThrow','penaltySpecialist','gkPenaltySaver','gamesmanship','manMarking','trackBack','interception','acrobaticClear','captaincy','superSub','fightingSpirit','trickster','mazingRun','speedingBullet','incisiveRun','longBallExpert','earlyCross','longRanger'];
+const SKILL_CA=[
+  'Retall','Toc doble','Flip Flap','Gir de Marsella','Barret','Gir creuat','Retall i gir','Moviment escocès','Control trepitjant','Remat de cap',
+  'Xut llunyà','Xut picat','Xut llarga distància','Xut de rosca','Xut amb efecte','Xut ascendent','Finalització acrobàtica','Truc de taló','Xut directe','Passada d\'un toc',
+  'Passada filtrada','Passada mesurada','Centrada precisa','Efecte exterior','Rabona','Passada sense mirar','Globo baix','Puntada baixa','Puntada alta','Llançament llarg',
+  'Llançament llarg (porter)','Especialista en penals','Aturada de penals','Joc psicològic','Marcatge individual','Cobertura','Intercepció','Refús acrobàtic','Capitanía','Super substitut',
+  'Esperit de lluita','Trampista','Conducció espectacular','Bala','Desmarcada incisiva','Pilota llarga','Centrada primerenca','Cañonero'
+];
+const SKILL_DESC=[
+  'Retall amb canvi de direcció per superar un defensor. (scissorsFeint)',
+  'Toc ràpid amb l\'interior per esquivar l\'oponent. (doubleTouch)',
+  'Regateig ample (Flip Flap) per desbordar. (flipFlap)',
+  'Gir de 360° estil Zidane (Marseille Turn). (marseilleTurn)',
+  'Eleva la pilota per sobre del defensor. (sombrero)',
+  'Gir creuat amb la pilota. (crossOverTurn)',
+  'Retall enrere i gir per desfer-se del marcador. (cutBehindAndTurn)',
+  'Finta de cos (Scotch Move) per desorientar. (scotchMove)',
+  'Control orientat trepitjant la pilota. (stepOnSkillControl)',
+  'Precisió en remats de cap millorada. (headingSkill)',
+  'Xut potent des de fora l\'àrea. (longRangeDrive)',
+  'Xut picat per sobre el porter. (chipShotControl)',
+  'Encert en xuts llargs (longRangeShooting). (longRangeShooting)',
+  'Xut sense efecte de rosca (Knuckleball). (knuckleShot)',
+  'Xut amb efecte descendent (dippingShot). (dippingShot)',
+  'Xut amb efecte ascendent (risingShot). (risingShot)',
+  'Xilena, tisora i altres acrobàcies. (acrobaticFinishing)',
+  'Passada o xut amb el taló. (heelTrick)',
+  'Xut a la primera (first-time shot). (firstTimeShot)',
+  'Passada d\'un toc (one-touch pass). (oneTouchPass)',
+  'Passada filtrada (through ball) més precisa. (throughPassing)',
+  'Passada llarga mesurada (weighted pass). (weightedPass)',
+  'Centrada precisa des de la banda. (pinpointCrossing)',
+  'Passada amb efecte exterior (trivela). (outsideCurler)',
+  'Xut/passada creuant cames (Rabona). (rabona)',
+  'Passada sense mirar (no-look pass). (noLookPass)',
+  'Globo baix i llarg per al porter. (lowLoftedPass)',
+  'Pilota enviada lluny amb l\'interior (porter). (gkLowPunt)',
+  'Pilota enviada lluny amb potència (porter). (gkHighPunt)',
+  'Llançament de banda llarg (long throw). (longThrow)',
+  'Llançament de banda extra llarg (porter). (gkLongThrow)',
+  'Encert en penals (penalty specialist). (penaltySpecialist)',
+  'Augmenta opcions d\'aturar penals (porter). (gkPenaltySaver)',
+  'Faltes tàctiques sense targeta. (gamesmanship)',
+  'Marcatge individual millorat (man-marking). (manMarking)',
+  'Cobertura defensiva (track back). (trackBack)',
+  'Intercepció de passades millorada. (interception)',
+  'Refús acrobàtic en situacions difícils. (acrobaticClear)',
+  'Millora l\'equip quan és capità (captaincy). (captaincy)',
+  'Estadístiques millorades al 2n temps/sortint de la banqueta. (superSub)',
+  'No es rendeix mai (fighting spirit). (fightingSpirit)',
+  'Regateigs imprevisibles i creatius. (trickster)',
+  'Conducció ràpida amb pilota controlada. (mazingRun)',
+  'Carrera explosiva (speeding bullet). (speedingBullet)',
+  'Desmarcada ofensiva (incisive run). (incisiveRun)',
+  'Passada llarga i canvis de joc (long ball expert). (longBallExpert)',
+  'Centrada al primer toc (early cross). (earlyCross)',
+  'Xut llunyà amb més potència (long ranger). (longRanger)'
+];
+const SKILL_CATS=[
+  [0,['Tecniques','scissorsFeint','doubleTouch','flipFlap','marseilleTurn','sombrero','crossOverTurn','cutBehindAndTurn','scotchMove','stepOnSkillControl','headingSkill','longThrow']],
+  [1,['Xut','longRangeDrive','chipShotControl','longRangeShooting','knuckleShot','dippingShot','risingShot','acrobaticFinishing','penaltySpecialist']],
+  [2,['Passada','heelTrick','firstTimeShot','oneTouchPass','throughPassing','weightedPass','pinpointCrossing','outsideCurler','rabona','noLookPass','lowLoftedPass']],
+  [3,['Porter','gkLowPunt','gkHighPunt','gkLongThrow','gkPenaltySaver']],
+  [4,['Mental','gamesmanship','manMarking','trackBack','interception','acrobaticClear','captaincy','superSub','fightingSpirit']],
+  [5,['Combo','trickster','mazingRun','speedingBullet','incisiveRun','longBallExpert','earlyCross','longRanger']],
+];
+const STAT_NAMES_FULL=[['ap','attackingProwess'],['bc','ballControl'],['tp','tightPossession'],['lp','lowPass'],['lf','loftedPass'],['fn','finishing'],['pk','placeKicking'],['cr','curl'],['sp','speed'],['ac','acceleration'],['jm','jump'],['pc','physicalContact'],['bl','balance'],['st','stamina'],['bw','ballWinning'],['ag','aggression'],['dp','defensiveProwess'],['hd','headingAbility'],['db','dribbling'],['kp','kickingPower']];
+const STAT_LABELS={ap:'Atac',bc:'Control',tp:'Regat',lp:'Passada baixa',lf:'Passada llarga',fn:'Finalització',pk:'Precisió',cr:'Efecte',sp:'Velocitat',ac:'Acceleració',jm:'Salt',pc:'Contacte físic',bl:'Equilibri',st:'Resistència',bw:'Robatoris',ag:'Agressivitat',dp:'Defensa',hd:'Cap',db:'Regateig',kp:'Potència de xut',ga:'Consciència',gc:'Aturades',gr:'Abast',gl:'Rebutjar',gx:'Reflexos'};
+const STAT_CATS={ap:'tec',bc:'tec',tp:'tec',lp:'tec',lf:'men',fn:'tec',pk:'tec',cr:'tec',sp:'phy',ac:'phy',jm:'phy',pc:'phy',bl:'phy',st:'phy',bw:'men',ag:'men',dp:'men',hd:'phy',db:'tec',kp:'phy',ga:'gk',gc:'gk',gr:'gk',gl:'gk',gx:'gk'};
+function patchId(tk){const f=tk.split('::')[0];return FULL_TO_FOLDER_ID[f]||f}
+
+
+let PATCHES=[];
+let drawnTeams=new Set();
+let isSpinning=false;
+let tedFullLoaded=true;
+// --- Raffle sound (Champions League–style) ---
+let audioCtx=null;
+function getAudioCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+// Brass-like note with attack/decay envelope
+function playBrass(t,freq,dur,vol){
+  const ctx=getAudioCtx();
+  const o=ctx.createOscillator();const g=ctx.createGain();
+  o.type='triangle';
+  o.frequency.value=freq;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.025);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(t);o.stop(t+dur);
+}
+
+// Low rumble (like orchestral timpani/low strings)
+function playRumble(t,dur,vol){
+  const ctx=getAudioCtx();
+  const o=ctx.createOscillator();const g=ctx.createGain();
+  o.type='sawtooth';
+  o.frequency.value=55;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+dur*0.3);
+  g.gain.linearRampToValueAtTime(0,t+dur);
+  const f=ctx.createBiquadFilter();
+  f.type='lowpass';f.frequency.value=200;
+  o.connect(f);f.connect(g);g.connect(ctx.destination);
+  o.start(t);o.stop(t+dur);
+}
+
+// "Drum hit" — timpani-like thump
+function playTimpani(t,vol){
+  const ctx=getAudioCtx();
+  const o=ctx.createOscillator();const g=ctx.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(80,t);
+  o.frequency.exponentialRampToValueAtTime(35,t+0.15);
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(t);o.stop(t+0.2);
+}
+
+// Champions League–style fanfare: three ascending brass calls + final hit
+function playFanfareCL(){
+  const ctx=getAudioCtx();const now=ctx.currentTime;
+  // First phrase: D4 → A4 → D5 (slow, dramatic)
+  playBrass(now,293.66,0.35,0.08);        // D4
+  playBrass(now+0.35,440,0.35,0.08);      // A4
+  playBrass(now+0.7,587.33,0.35,0.08);   // D5
+  playTimpani(now+0.7,0.12);
+  // Second phrase: F5 → E5 → D5 → A4 (descending)
+  playBrass(now+1.1,698.46,0.3,0.07);    // F5
+  playBrass(now+1.35,659.25,0.3,0.07);   // E5
+  playBrass(now+1.6,587.33,0.3,0.07);    // D5
+  playBrass(now+1.85,440,0.3,0.06);      // A4
+  // Build-up rumble
+  playRumble(now+1.0,1.0,0.04);
+  // Final climax: D4-F4-A4-D5 chord (layered)
+  playTimpani(now+1.85,0.18);
+  playBrass(now+2.0,293.66,0.7,0.06);    // D4
+  playBrass(now+2.0,349.23,0.7,0.06);    // F4
+  playBrass(now+2.0,440,0.7,0.06);       // A4
+  playBrass(now+2.0,587.33,0.7,0.08);    // D5
+  // Final stinger
+  (function(){
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.type='sine';o.frequency.value=73.42; // D2 low pedal
+    g.gain.setValueAtTime(0,now+1.8);
+    g.gain.linearRampToValueAtTime(0.1,now+2.0);
+    g.gain.exponentialRampToValueAtTime(0.001,now+2.7);
+    o.connect(g);g.connect(ctx.destination);
+    o.start(now+1.8);o.stop(now+2.7);
+  })();
+}
+
+// Spin tick — short brass staccato note
+function playTickCL(t,pitch){
+  const ctx=getAudioCtx();
+  const o=ctx.createOscillator();const g=ctx.createGain();
+  o.type='triangle';
+  o.frequency.value=pitch;
+  g.gain.setValueAtTime(0.04,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(t);o.stop(t+0.06);
+}
+
+let soundInterval=null;
+let tickCount=0;
+async function startLotterySound(){
+  const ctx=getAudioCtx();
+  if(ctx.state==='suspended')await ctx.resume();
+  tickCount=0;
+  soundInterval=setInterval(()=>{
+    const now=ctx.currentTime;
+    const pitch=350+tickCount*4;
+    tickCount++;
+    playTickCL(now,pitch);
+    if(tickCount%6===0)playTimpani(now+0.01,0.07);
+    if(tickCount%18===0)playRumble(now,0.6,0.03);
+  },80);
+}
+function stopLotterySound(){
+  if(soundInterval){clearInterval(soundInterval);soundInterval=null}
+}
+async function playRevealSound(){
+  const ctx=getAudioCtx();
+  if(ctx.state==='suspended')await ctx.resume();
+  playFanfareCL();
+}
+
+function starsStr(c){return '\u2605'.repeat(c)+'\u2606'.repeat(5-c)}
+function normalize(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+
+function getLevel(){return parseInt(document.getElementById('levelSelect').value)||0}
+
+async function loadFullData(teamKey,cb){
+  const patchDir=teamKey.split('::')[0];
+  for(const k in TED_FULL){if(k.startsWith(patchDir+'::')){cb();return}}
+  const patchId=FULL_TO_FOLDER_ID[patchDir]||patchDir.replace(/[^a-zA-Z0-9]/g,'_');
+  try{
+    const data=await fetch('data/full/'+patchId+'.json').then(r=>r.json());
+    Object.assign(TED_FULL,data);
+    cb();
+  }catch(e){console.error('Failed to load patch data:',e)}
+}
+
+function init(){
+  if(!TED_DATA){window._initOnReady=true;return}
+  PATCHES=TED_DATA.teams.map(p=>({id:FULL_TO_FOLDER_ID[p.patch]||p.patch,name:PATCH_NAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,fullName:PATCH_FULLNAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,patchDir:p.patch,teams:p.teams.map(t=>({name:t.teamName,teamKey:t.teamKey,playerCount:t.playerCount,starRating:t.starRating})).sort((a,b)=>a.name.localeCompare(b.name))}));
+  renderPatchCheckboxes();
+  renderTeamLists();
+  document.getElementById('btnDraw').addEventListener('click',drawTeams);
+  document.getElementById('btnReset').addEventListener('click',resetAll);
+  document.getElementById('levelSelect').addEventListener('change',()=>{renderPatchCheckboxes();renderTeamLists()});
+  document.getElementById('numDraw').addEventListener('change',function(){const m=getAvailableCount();if(parseInt(this.value)>m)this.value=m});
+  setupSearch();
+  document.addEventListener('click',function(e){const item=e.target.closest('.team-item');if(item){const key=item.dataset.teamkey;if(key)openTeamDetail(key)}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeTeamPanel();closeSearchResults()}});
+}
+
+function renderPatchCheckboxes(){
+  const c=document.getElementById('patchCheckboxes');
+  const lvl=getLevel();
+  const cur={};c.querySelectorAll('.patch-cb').forEach(cb=>{cur[cb.value]=cb.checked});
+  c.innerHTML=PATCHES.map(p=>{let f=p.teams;if(lvl>0)f=f.filter(t=>t.starRating===lvl);const ch=cur[p.id]!==false?'checked':'';return`<label><input type="checkbox" class="patch-cb" value="${p.id}" ${ch}><span>${p.fullName}</span><span class="count">(${f.length} equips)</span></label>`}).join('');
+}
+
+function renderTeamLists(){
+  const c=document.getElementById('teamLists');
+  const lvl=getLevel();
+  c.innerHTML=PATCHES.map((p,idx)=>{const teams=lvl>0?p.teams.filter(t=>t.starRating===lvl):p.teams;return`<div class="patch-section"><div class="patch-header" data-index="${idx}" title="Expandir o col·lapsar llista d'equips"><h3>${p.fullName}</h3><div class="meta"><span class="count-badge">${teams.length} equips</span><span class="toggle-icon">\u25BC</span></div></div><div class="team-grid" id="grid-${p.id}">${teams.map(t=>`<div class="team-item" data-team="${t.name}" data-patch="${p.id}" data-teamkey="${t.teamKey.replace(/"/g,'&quot;')}" title="${t.name.replace(/"/g,'&quot;')}"><span class="stars" style="margin-right:4px;font-size:.7rem">${starsStr(t.starRating)}</span>${t.name}</div>`).join('')}</div></div>`}).join('');
+  document.querySelectorAll('.patch-header').forEach(h=>{h.addEventListener('click',()=>{const g=h.nextElementSibling;const i=h.querySelector('.toggle-icon');g.classList.toggle('open');i.classList.toggle('open')})});
+}
+
+function getSelectedPatches(){return[...document.querySelectorAll('.patch-cb:checked')].map(cb=>cb.value)}
+
+function getAvailableCount(forLevel){
+  const sid=getSelectedPatches();const lvl=forLevel||getLevel();let c=0;
+  for(const p of PATCHES){if(!sid.includes(p.id))continue;for(const t of p.teams){if(lvl>0&&t.starRating!==lvl)continue;if(!drawnTeams.has(p.id+'::'+t.name))c++}}
+  return c;
+}
+
+function getAvailableTeams(forLevel){
+  const sid=getSelectedPatches();const lvl=forLevel||getLevel();const all=[];
+  for(const p of PATCHES){if(!sid.includes(p.id))continue;for(const t of p.teams){if(lvl>0&&t.starRating!==lvl)continue;if(!drawnTeams.has(p.id+'::'+t.name))all.push({team:t.name,patchId:p.id,patchName:p.name,playerCount:t.playerCount,starRating:t.starRating})}}
+  return all;
+}
+
+async function drawTeams(){
+  if(isSpinning)return;
+  const num=parseInt(document.getElementById('numDraw').value)||1;
+  const lvl=getLevel();
+  let available=[];
+  if(lvl===0){for(const l of[3,4,5,2,1]){const at=getAvailableTeams(l);if(at.length>=num){available=at;break}}if(available.length===0)available=getAvailableTeams()}
+  else available=getAvailableTeams();
+  if(available.length===0){alert('No hi ha equips disponibles per sortejar. Reinicia o selecciona patches.');return}
+  const count=Math.min(num,available.length);
+  const pool=[...available];const picked=[];
+  for(let i=0;i<count;i++){const idx=Math.floor(Math.random()*pool.length);picked.push(pool[idx]);pool.splice(idx,1)}
+  isSpinning=true;
+  await animateSpin(picked);
+  for(const p of picked)drawnTeams.add(p.patchId+'::'+p.team);
+  renderResults();
+  updateTeamListMarkers();
+  document.getElementById('numDraw').value=Math.min(parseInt(document.getElementById('numDraw').value)||1,getAvailableCount());
+  isSpinning=false;
+}
+
+function animateSpin(pickedTeams){
+  return new Promise(resolve=>{
+    const overlay=document.getElementById('spinOverlay');
+    const spinName=document.getElementById('spinName');
+    const spinCount=document.getElementById('spinCount');
+    const stepsEl=document.getElementById('drawSteps');
+    const available=getAvailableTeams();
+    overlay.classList.add('active');
+    const allNames=available.map(a=>a.team);
+    let stepEls=[];
+    if(pickedTeams.length>1){
+      stepsEl.innerHTML=pickedTeams.map((_,i)=>`<span class="draw-step" id="ds-${i}"></span>`).join('');
+      stepEls=pickedTeams.map((_,i)=>document.getElementById('ds-'+i));
+    }
+    function setBlur(){spinName.classList.add('blur');spinName.classList.remove('reveal')}
+    function setReveal(){spinName.classList.remove('blur');spinName.classList.add('reveal')}
+
+    function spinTeam(index){
+      return new Promise(res=>{
+        const teamName=pickedTeams[index].team;
+        const spinDur=2500+Math.random()*4500;
+        const start=Date.now();
+        let timer;
+
+        function cycle(){
+          const elapsed=Date.now()-start;
+          spinName.textContent=allNames[Math.floor(Math.random()*allNames.length)];
+          setBlur();
+          spinName.classList.remove('reveal');
+          spinName.classList.add('shake');
+          if(elapsed>=spinDur){
+            stopLotterySound();
+            spinName.textContent=teamName;
+            spinName.classList.remove('shake');
+            setReveal();
+            playRevealSound();
+            if(stepEls[index])stepEls[index].className='draw-step done';
+            setTimeout(res,900);
+            return;
+          }
+          const p=elapsed/spinDur;
+          timer=setTimeout(cycle,40+p*p*300);
+        }
+
+        startLotterySound();
+        cycle();
+      });
+    }
+
+    (async()=>{
+      for(let i=0;i<pickedTeams.length;i++){
+        spinCount.textContent=`Equip ${i+1} de ${pickedTeams.length}`;
+        if(stepEls[i])stepEls[i].className='draw-step active';
+        await spinTeam(i);
+      }
+      stopLotterySound();
+      setTimeout(()=>{overlay.classList.remove('active');resolve()},1200);
+    })();
+  });
+}
+
+function updateTeamListMarkers(){
+  document.querySelectorAll('.team-item').forEach(el=>{const t=el.dataset.team;const p=el.dataset.patch;el.classList.toggle('drawn',drawnTeams.has(p+'::'+t))});
+}
+
+// --- Player Search ---
+let searchTimeout=null;
+function setupSearch(){
+  const bar=document.getElementById('searchFilterBar');
+  const patchSel=document.getElementById('searchPatchFilter');
+  PATCHES.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;patchSel.appendChild(o)});
+  const input=document.getElementById('searchInput');
+  const results=document.getElementById('searchResults');
+  function onInput(){
+    clearTimeout(searchTimeout);
+    bar.style.opacity='1';
+    searchTimeout=setTimeout(runSearch,200);
+  }
+  input.addEventListener('input',onInput);
+  input.addEventListener('focus',()=>{bar.style.opacity='1';runSearch()});
+  renderPosTags();
+  patchSel.addEventListener('change',runSearch);
+  const footSel=document.getElementById('searchFootFilter');footSel.addEventListener('change',runSearch);
+  document.getElementById('searchPosArea').addEventListener('click',e=>{
+    const tag=e.target.closest('.pos-tag');
+    if(!tag)return;
+    const idx=tag.dataset.idx;
+    if(idx==='all'){
+      if(posFilter.size===0)return;
+      posFilter.clear();
+    }else{
+      const n=parseInt(idx);
+      if(posFilter.has(n))posFilter.delete(n);else posFilter.add(n);
+    }
+    renderPosTags();
+    runSearch();
+  });
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.search-group')&&!e.target.closest('#searchResults'))closeSearchResults()
+  });
+  // Hide filter bar initially
+  bar.style.opacity='.4';
+}
+function closeSearchResults(){document.getElementById('searchResults').classList.remove('open')}
+
+let skillFilter=new Set();
+let posFilter=new Set();
+
+function renderPosTags(){
+  const area=document.getElementById('searchPosArea');
+  const allActive=posFilter.size===0;
+  area.innerHTML='<span class="pos-tag all-tag'+(allActive?' active':'')+'" data-idx="all">Totes</span>'+
+    POS_NAMES.map((n,i)=>'<span class="pos-tag'+(posFilter.has(i)?' active':'')+'" data-idx="'+i+'">'+n+'</span>').join('');
+}
+function toggleSkillGlossary(){
+  const o=document.getElementById('skillGlossaryOverlay');
+    if(o.classList.contains('active')){closeSkillGlossary();runSearch()}
+  else{
+    renderGlossary();
+    o.classList.add('active');
+    document.body.style.overflow='hidden';
+  }
+}
+function closeSkillGlossary(){
+  document.getElementById('skillGlossaryOverlay').classList.remove('active');
+  document.body.style.overflow='';
+  renderGlossary(); // re-render to update active state
+}
+function renderGlossary(){
+  const c=document.getElementById('glossaryInner');
+  c.innerHTML=SKILL_CATS.map(cat=>{
+    const catName=cat[1][0];
+    const skillNames=cat[1].slice(1);
+    const skillIndices=[];
+    for(const sn of skillNames){
+      const idx=SKILL_NAMES.indexOf(sn);
+      if(idx>=0)skillIndices.push(idx);
+    }
+    return`<div class="gl-cat">${catName}</div><div class="skill-glossary-grid">${skillIndices.map(i=>`<div class="gl-skill${skillFilter.has(i)?' active':''}" onclick="toggleSkillFilter(${i});renderGlossary()"><div class="gl-name"><span class="gl-idx">${i}</span>${SKILL_CA[i]||SKILL_NAMES[i]}</div><div class="gl-sub">${SKILL_NAMES[i]}</div><div class="gl-desc">${SKILL_DESC[i]||''}</div></div>`).join('')}</div>`;
+  }).join('');
+}
+
+function toggleSkillFilter(idx){
+  if(skillFilter.has(idx))skillFilter.delete(idx);else skillFilter.add(idx);
+  updateSkillArea();
+  runSearch();
+}
+
+function renderSkillTags(){
+  return [...skillFilter].map(i=>`<span class="sf-skill-tag">${SKILL_CA[i]||SKILL_NAMES[i]}<button class="sf-skill-clear" onclick="removeSkillFilter(${i})">&#10005;</button></span>`).join('');
+}
+function updateSkillArea(){
+  document.getElementById('searchSkillArea').innerHTML=skillFilter.size?renderSkillTags()+'<button class="sf-skill-clear" onclick="clearSkillFilter()" style="margin-left:4px">neteja</button>':'';
+}
+
+// --- Controls reference ---
+const CONTROLS_DATA=[
+  {cat:'Moviment bàsic',items:[
+    ['Moure jugador','LS'],
+    ['Córrer','R1 + LS'],
+    ['Esprint','R1 (mantingut)'],
+    ['Aturada ràpida','Deixar anar LS + R1'],
+    ['Aturada i encarar porteria','Deixar anar LS + R2'],
+    ['Super cancel·lar','R1 + R2'],
+  ]},
+  {cat:'Atac',items:[
+    ['Passada curta','X'],
+    ['Passada llarga / centrada','O'],
+    ['Passada filtrada','△'],
+    ['Xut','▢'],
+    ['Xut de rosca / precis','R2 + ▢ + LS ←/→'],
+    ['Xut de potència','▢ (LS sense correcció)'],
+    ['Xut de vaselina','L1 + ▢'],
+    ['Centrada alta','O (mantingut)'],
+    ['Centrada rasa','O (doble toc)'],
+    ['Centrada tensa','R2 + O'],
+    ['Passada de primera','L1 + X'],
+    ['Paret','L1 + X (després △)'],
+    ['Paret dinàmica','L1 + X + RS (direcció)'],
+    ['Passada elevada filtrada','L1 + △'],
+    ['Passada alta','R1 + O'],
+    ['Canvi de joc','R2 + LS + O'],
+    ['Passada i va','X/△ + R2 (abans de xutar)'],
+  ]},
+  {cat:'Defensa',items:[
+    ['Canviar jugador','L1'],
+    ['Canviar jugador manual','RS (flick direcció)'],
+    ['Pressionar','X (mantingut)'],
+    ['Entrada','X (doble toc)'],
+    ['Entrada lliscant','O'],
+    ['Pressionar amb company','▢ (mantingut)'],
+    ['Marcatge (jockey)','R2 + LS'],
+    ['Treure porter','△'],
+    ['Moure porter a la línia','△ (mantingut) + LS'],
+    ['Seleccionar defensor (falta)','RS (clic) + L1 per canviar'],
+    ['Saltar mur (falta)','▢'],
+    ['Evitar salt','No fer res / mantenir X'],
+    ['Carregar (falta)','O al xutar'],
+  ]},
+  {cat:'Regat',items:[
+    ['Regat tancat (finesse)','R2 + LS'],
+    ['Regat en esprint','LS + R1'],
+    ['Arrancada','R1 (doble toc) + LS'],
+    ['Toc de pilota (aturat)','R2 + RS (direcció)'],
+    ['Control proper + gir','LS + R2 (en rebre)'],
+    ['Conduir pilota','R1 + LS (mantingut)'],
+  ]},
+  {cat:'Recepció i control',items:[
+    ['Control orientat','LS cap a on mirar + R2 abans de rebre'],
+    ['Rebaixar','Deixar anar LS + R1 abans de controlar'],
+    ['Rebaixar (finta)','Deixar anar LS + L1 abans de controlar'],
+    ['Picar pilota','R3 (clic + mantenir en rebre)'],
+  ]},
+  {cat:'Passada manual (L2)',items:[
+    ['Passada manual curta','L2 + X (apuntar amb LS)'],
+    ['Passada manual llarga','L2 + O (apuntar amb LS)'],
+    ['Passada manual filtrada','L2 + △ (apuntar amb LS)'],
+    ['Centrada manual','L2 + O (apuntar amb LS)'],
+  ]},
+  {cat:'Xut manual (L2)',items:[
+    ['Xut manual','L2 + ▢ (apuntar amb LS)'],
+    ['Xut manual controlat','L2 + R2 + ▢'],
+  ]},
+  {cat:'Skills — Fintes de cos',items:[
+    ['Gambeta','RS ↑/↓ (flick) + LS (direcció)'],
+    ['Finta de cos ràpida','LS ↑/↓ (flick) + LS (direcció)'],
+  ]},
+  {cat:'Skills — Tisores',items:[
+    ['Tisora','RS ↑/↓ (flick) + LS (direcció)'],
+    ['Tisora múltiple','RS ↑/↓ (flick ×2) + LS (direcció)'],
+    ['Tisora d\'alta velocitat*','RS ↑/↓ (flick) + LS (direcció)'],
+  ]},
+  {cat:'Skills — Pitjades (Step on)',items:[
+    ['Draw & open','R ← (mantingut) + L ↓/→'],
+    ['Draw & close','R ← (mantingut) + L ←'],
+    ['Scotch move*','R ← (mantingut) + L →'],
+  ]},
+  {cat:'Skills — Elàstic i girs',items:[
+    ['Flip flap (elàstico)*','R ↓ (mantingut) + L ←/→'],
+    ['Reverse flip flap*','R ↑ (mantingut) + L ←/→'],
+    ['Marseille turn (ruleta)','R → (mantingut) + L (qualsevol)'],
+    ['Doble toc','R ↓/↑ (mantingut) + L (qualsevol direcció)'],
+    ['Cross over turn','R → (mantingut) + L (entre ↑ i ↓)'],
+  ]},
+  {cat:'Skills — Sombrero',items:[
+    ['Sombrero (pilota aèria)','R3 (clic + mantenir) + L (direcció)'],
+    ['Rainbow flick','R3 (clic ×2)'],
+    ['Boomerang trap*','R3 (clic + mantenir) + L (cap oponent)'],
+  ]},
+  {cat:'Skills — Fintes de xut',items:[
+    ['Finta de xut','▢ o O (després X ràpid)'],
+    ['Cut behind','▢ o O + X + L (qualsevol direcció)'],
+  ]},
+  {cat:'Pilotes aturades — Faltes',items:[
+    ['Xut directe','▢ (LS per efecte)'],
+    ['Passada curta','X'],
+    ['Passada llarga','O'],
+    ['Finta (toc curt)','L1 + X'],
+    ['Tir amb 2n jugador','L2 (mantingut) + ▢/O'],
+    ['Pujar mur','▢ (defensor)'],
+    ['Evitar pujar','Mantenir X (defensor)'],
+  ]},
+  {cat:'Pilotes aturades — Córners',items:[
+    ['Centrada alta','O'],
+    ['Centrada rasa','O (doble toc)'],
+    ['Centrada tensa','R2 + O'],
+    ['Joc curt','X'],
+    ['Estratègia atac','DPAD ↑/↓/←/→ (abans de treure)'],
+  ]},
+  {cat:'Pilotes aturades — Penals',items:[
+    ['Xut','▢'],
+    ['Vaselina','L1 + ▢'],
+    ['Guia de precisió','R1 (mantingut)'],
+    ['Parada (com a porter)','LS (direcció)'],
+    ['Sortir (com a porter)','△ o LS ↑ (mantingut)'],
+  ]},
+  {cat:'Porter (amb pilota)',items:[
+    ['Deixar/recollir','Deixar LS + R1'],
+    ['Llançar','X'],
+    ['Llançar a l\'espai','△'],
+    ['Xut de porta','O'],
+    ['Puntada alta','R1 + O'],
+    ['Finta de treure','Qualsevol passada + X ràpid'],
+  ]},
+  {cat:'Estratègia',items:[
+    ['Canviar tàctica','DPAD ↑/↓ (mantingut)'],
+    ['Atac 1/2','L2 + DPAD ↑/↓'],
+    ['Defensa 1/2','L2 + DPAD ←/→'],
+    ['Pujar/baixar línia','DPAD ↑/↓ (doble toc)'],
+    ['Substitució ràpida','SELECT (pilota aturada)'],
+  ]},
+];
+const CONTROLS_NOTES={
+  'R (dret)': 'RS (Right Stick / pal dret)',
+  'L (esquerra)': 'LS (Left Stick / pal esquerre)',
+  'R1': 'R1 / RB',
+  'R2': 'R2 / RT',
+  'R3': 'Click pal dret',
+  'L1': 'L1 / LB',
+  'L2': 'L2 / LT',
+  'LS': 'Pal esquerre',
+  'RS': 'Pal dret',
+  'DPAD': 'Creueta direccional',
+  'SELECT': 'Touchpad / View button',
+};
+function toggleControls(){
+  const o=document.getElementById('controlsOverlay');
+  if(o.classList.contains('active')){closeControls()}
+  else{
+    renderControls();
+    o.classList.add('active');
+    document.body.style.overflow='hidden';
+  }
+}
+function closeControls(){
+  document.getElementById('controlsOverlay').classList.remove('active');
+  document.body.style.overflow='';
+}
+function renderControls(){
+  const c=document.getElementById('controlsInner');
+  c.innerHTML=CONTROLS_DATA.map(g=>`<div class="gl-cat">${g.cat}</div><div class="contr-grid">${g.items.map(i=>`<div class="contr-row"><span class="contr-action">${i[0]}</span><span class="contr-btn">${i[1]}</span></div>`).join('')}</div>`).join('');
+  c.innerHTML+=`<div class="gl-cat" style="margin-top:18px">Llegenda</div><div class="contr-legend">${Object.entries(CONTROLS_NOTES).map(([k,v])=>`<span><b>${k}</b> = ${v}</span>`).join(' · ')}</div>`;
+  c.innerHTML+=`<p style="color:#5a7a5a;font-size:.72rem;margin-top:14px;line-height:1.5">* Requereix habilitat de jugador (skill). <span style="float:right">Configuració: Standard (PS4) / Equivalent Xbox</span></p>`;
+}
+
+function hasSkill(pl,idx){
+  if(idx<0)return true;
+  if(idx<32)return((pl.sl>>>0)&(1<<idx))!==0;
+  return((pl.sh>>>0)&(1<<(idx-32)))!==0;
+}
+function playerHasAllSkills(pl){
+  for(const si of skillFilter){if(!hasSkill(pl,si))return false}
+  return true;
+}
+
+function removeSkillFilter(idx){
+  skillFilter.delete(idx);
+  updateSkillArea();
+  runSearch();
+}
+function clearSkillFilter(){
+  skillFilter.clear();
+  updateSkillArea();
+  runSearch();
+}
+function runSearch(){
+  const r=document.getElementById('searchResults');
+  const q=normalize(document.getElementById('searchInput').value).trim();
+  doSearch(q,r);
+}
+
+let searchData=null,searchRendered=0;
+const SEARCH_BATCH=40;
+function doSearch(q,resultsEl){
+  const patchEl=document.getElementById('searchPatchFilter');const patchFilter=patchEl?patchEl.value:'all';
+  const footEl=document.getElementById('searchFootFilter');const footFilter=footEl?footEl.value:'all';
+  searchData=TED_DATA.players.filter(p=>normalize(p.n).includes(q)&&(posFilter.size===0||posFilter.has(p.p))&&(patchFilter==='all'||patchId(p.tk)===patchFilter)&&(footFilter==='all'||p.sf===parseInt(footFilter))&&playerHasAllSkills(p));
+  searchData.sort((a,b)=>b.o-a.o);
+  searchRendered=0;
+  const total=searchData.length;
+  const countEl=document.getElementById('searchCount');
+  countEl.textContent=total>0?`${total} jug.`:'';
+  updateSkillArea();
+  if(total===0){
+    resultsEl.innerHTML=`<div class="no-results">Cap jugador trobat</div>`;
+    resultsEl.classList.add('open');
+    return;
+  }
+  resultsEl.innerHTML='';
+  resultsEl.classList.add('open');
+  appendSearchResults(resultsEl);
+}
+function appendSearchResults(resultsEl){
+  const end=Math.min(searchRendered+SEARCH_BATCH,searchData.length);
+  const frag=document.createDocumentFragment();
+  for(let i=searchRendered;i<end;i++){
+    const p=searchData[i];
+    const teamKey=p.tk;
+    const teamName=teamKey.split('::')[1];
+    const div=document.createElement('div');
+    div.className='search-result-item';
+    div.onclick=()=>{closeSearchResults();openPlayerModal(teamKey,p.di)};
+    const footIcon=p.sf===1?'<span class="sr-foot" style="color:#60a0f0">L</span>':'<span class="sr-foot" style="color:#3a4a3a">R</span>';
+    div.innerHTML=`<span class="sr-name">${p.n}</span><span class="sr-pos">${POS_NAMES[p.p]}</span>${footIcon}<span class="sr-team">${teamName}</span><span class="sr-ovr">${p.o}</span>`;
+    frag.appendChild(div);
+  }
+  resultsEl.appendChild(frag);
+  searchRendered=end;
+  if(end<searchData.length){
+    if(!resultsEl._scrollHandler){
+      resultsEl._scrollHandler=true;
+      resultsEl.addEventListener('scroll',()=>{
+        if(resultsEl.scrollTop+resultsEl.clientHeight>=resultsEl.scrollHeight-100)appendSearchResults(resultsEl);
+      });
+    }
+  }
+}
+
+// --- Team Detail Panel ---
+function openTeamDetail(teamKey){
+  const panel=document.getElementById('teamPanelOverlay');
+  panel.classList.add('active');
+  document.body.style.overflow='hidden';
+  document.getElementById('panelContent').innerHTML='<div class="panel-card"><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-block"></div></div>';
+  loadFullData(teamKey,()=>{
+    const data=TED_FULL[teamKey];
+    if(!data){document.getElementById('panelContent').innerHTML='<div class="panel-card"><p style="color:#5a7a5a">Equip no trobat</p></div>';return}
+    renderPanel(data,teamKey);
+  });
+}
+
+function closeTeamPanel(){
+  document.getElementById('teamPanelOverlay').classList.remove('active');
+  document.body.style.overflow='';
+  for(const[,ch]of teamChartInstances){ch.destroy()}
+  teamChartInstances.clear();
+}
+
+function renderPanelHeader(data){
+  return`<div class="panel-card">
+    <div class="panel-header-info">
+      <h2>${data.teamName} <span class="stars" style="font-size:.9rem">${starsStr(data.starRating)}</span></h2>
+      <div class="ovr-big">${data.ovr}</div>
+    </div>
+    <div class="panel-meta">
+      <span>${data.shortName||'?'}</span>
+      <span>${data.stadium||'?'}</span>
+      <span>${data.players.length} jug.</span>
+      <span>OVR</span>
+    </div>
+  </div>`;
+}
+
+function renderStrengths(data){
+  const statKeys=[['ap','Atac'],['bc','Control'],['tp','Regat'],['lp','Passada B'],['lf','Passada A'],['fn','Finalització'],['pk','Precisió'],['cr','Efecte'],['sp','Velocitat'],['ac','Accel.'],['jm','Salt'],['pc','C. Físic'],['bl','Equilibri'],['st','Resist.'],['bw','Robat.'],['ag','Agress.'],['dp','Defensa'],['hd','Cap'],['db','Regateig'],['kp','Pot. Xut']];
+  const avgs={};
+  for(const[k]of statKeys){
+    let sum=0;for(const pl of data.players)sum+=pl[k]||0;
+    avgs[k]=Math.round(sum/data.players.length);
+  }
+  const sorted=[...statKeys].sort((a,b)=>avgs[b[0]]-avgs[a[0]]);
+  const top3=sorted.slice(0,3);
+  const bot3=sorted.slice(-3).reverse();
+  const bar=(v,clr)=>{const p=Math.round(v/100*95+5);return`<div class="s-bar"><div class="s-fill" style="width:${p}%;background:${clr}"></div></div>`};
+  return`<div class="panel-card"><h3>Fortaleses i Febleses</h3><div class="strength-grid">
+    <div class="strength-col"><h4>Fortaleses</h4>${top3.map(s=>`<div class="strength-item"><span class="s-label">${s[1]}</span>${bar(avgs[s[0]],'#3b82f6')}<span class="s-val">${avgs[s[0]]}</span></div>`).join('')}</div>
+    <div class="strength-col"><h4>Febleses</h4>${bot3.map(s=>`<div class="strength-item"><span class="s-label">${s[1]}</span>${bar(avgs[s[0]],'#5a7a5a')}<span class="s-val">${avgs[s[0]]}</span></div>`).join('')}</div>
+  </div></div>`;
+}
+
+function renderFormation(data,teamKey){
+  return '<div class="panel-card"><h3>Alineació</h3><canvas id="fc-'+teamKey.replace(/[^a-zA-Z0-9]/g,'_')+'" class="formation-canvas"></canvas></div>';
+}
+
+function drawFormation(data,teamKey){
+  const cid='fc-'+teamKey.replace(/[^a-zA-Z0-9]/g,'_');
+  const canvas=document.getElementById(cid);
+  if(!canvas)return;
+  const W=380,H=490;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const pd=14, L=pd,R=W-pd,T=pd,B=H-pd,PW=R-L,PH=B-T;
+
+  ctx.fillStyle='#1a3a1a';
+  ctx.fillRect(0,0,W,H);
+  for(let i=0;i<10;i++){ctx.fillStyle=i%2===0?'#1e401e':'#1a3a1a';ctx.fillRect(L,T+i*PH/10,PW,PH/10+1)}
+
+  ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1.5;
+  ctx.strokeRect(L,T,PW,PH);
+  ctx.beginPath();ctx.moveTo(L,T+PH/2);ctx.lineTo(R,T+PH/2);ctx.stroke();
+  ctx.beginPath();ctx.arc(L+PW/2,T+PH/2,PH*0.12,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(L+PW/2,T+PH/2,3,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fill();
+  const paW=PW*0.55,paH=PH*0.16;
+  ctx.strokeRect(L+(PW-paW)/2,T,paW,paH);
+  ctx.strokeRect(L+(PW-paW)/2,B-paH,paW,paH);
+  const gaW=PW*0.24,gaH=PH*0.07;
+  ctx.strokeRect(L+(PW-gaW)/2,T,gaW,gaH);
+  ctx.strokeRect(L+(PW-gaW)/2,B-gaH,gaW,gaH);
+  ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=3;
+  const gw=PW*0.18;
+  ctx.beginPath();ctx.moveTo(L+PW/2-gw/2,B);ctx.lineTo(L+PW/2-gw/2,B+6);ctx.lineTo(L+PW/2+gw/2,B+6);ctx.lineTo(L+PW/2+gw/2,B);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(L+PW/2-gw/2,T);ctx.lineTo(L+PW/2-gw/2,T-6);ctx.lineTo(L+PW/2+gw/2,T-6);ctx.lineTo(L+PW/2+gw/2,T);ctx.stroke();
+
+  const starters=data.players.slice(0,11);
+  const catCol={gk:'rgba(59,130,246,0.9)',def:'rgba(74,122,217,0.85)',mid:'rgba(80,200,120,0.85)',fwd:'rgba(231,76,60,0.85)'};
+  const Y_BANDS=[
+    {y:92, pad:50, cen:[0], wide:[]},
+    {y:76, pad:28, cen:[1], wide:[2,3]},
+    {y:63, pad:30, cen:[4], wide:[]},
+    {y:50, pad:20, cen:[5], wide:[6,7]},
+    {y:36, pad:25, cen:[8,11], wide:[]},
+    {y:22, pad:20, cen:[], wide:[9,10]},
+    {y:14, pad:30, cen:[12], wide:[]},
+  ];
+  const plc=[];
+
+  for(const band of Y_BANDS){
+    const cen=[];let lw=null,rw=null;
+    for(let i=0;i<starters.length;i++){
+      const pos=starters[i].p;
+      if(band.cen.includes(pos)) cen.push({player:starters[i],idx:i});
+      else if(band.wide.includes(pos)){
+        if(pos===2||pos===6||pos===9) lw={player:starters[i],idx:i};
+        else rw={player:starters[i],idx:i};
+      }
+    }
+    const total=cen.length+(lw?1:0)+(rw?1:0);
+    if(total===0)continue;
+    const xs=[];
+    if(lw) xs.push({x:8, player:lw.player, idx:lw.idx});
+    if(rw) xs.push({x:92, player:rw.player, idx:rw.idx});
+    const n=cen.length;
+    if(n>0){
+      const min=band.pad,max=100-band.pad;
+      for(let j=0;j<n;j++){
+        const x=n>1?min+j*(max-min)/(n-1):(min+max)/2;
+        xs.push({x,player:cen[j].player,idx:cen[j].idx});
+      }
+    }
+    const yBase=band.y;
+    for(let j=0;j<xs.length;j++){
+      const py=T+yBase/100*PH;
+      const px=L+xs[j].x/100*PW;
+      const pos=xs[j].player.p;
+      let cat;if(pos===0)cat='gk';else if([1,2,3].includes(pos))cat='def';else if([4,5,6,7,8].includes(pos))cat='mid';else cat='fwd';
+      plc.push({player:xs[j].player,px,py,cat,pos,idx:xs[j].idx});
+    }
+  }
+
+  const R2=12;
+  for(const p of plc){
+    const g=ctx.createRadialGradient(p.px,p.py,R2*0.5,p.px,p.py,R2*2.5);
+    g.addColorStop(0,catCol[p.cat].replace('0.85','0.15').replace('0.9','0.15'));
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.px,p.py,R2*2.5,0,Math.PI*2);ctx.fill();
+  }
+  for(const p of plc){
+    ctx.beginPath();ctx.arc(p.px,p.py,R2,0,Math.PI*2);
+    ctx.fillStyle=catCol[p.cat];ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1.2;ctx.stroke();
+
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='bold 11px monospace';
+    ctx.fillText(p.player.s,p.px,p.py-5);
+    ctx.font='bold 8px sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.fillText(Math.round(p.player.o),p.px,p.py+7);
+
+    let nm=p.player.n;if(nm.length>11)nm=nm.slice(0,9)+'…';
+    ctx.fillStyle='#c8d8c8';ctx.font='10px sans-serif';ctx.textBaseline='top';
+    ctx.fillText(nm,p.px,p.py+R2+3);
+
+    ctx.fillStyle='#6a8a6a';ctx.font='8px sans-serif';ctx.textBaseline='top';
+    ctx.fillText(POS_NAMES[p.player.p],p.px,p.py+R2+14);
+  }
+
+  canvas.style.cursor='pointer';
+  function hitPlayer(e){
+    const r=canvas.getBoundingClientRect();
+    const sx=W/r.width,sy=H/r.height;
+    const mx=(e.clientX-r.left)*sx,my=(e.clientY-r.top)*sy;
+    let best=-1,bestD=R2+8;
+    for(let i=0;i<plc.length;i++){
+      const dx=mx-plc[i].px,dy=my-plc[i].py;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<bestD){bestD=d;best=i}
+    }
+    return best;
+  }
+  canvas.onmousemove=function(e){const b=hitPlayer(e);canvas.title=b>=0?plc[b].player.n:'';canvas.style.cursor=b>=0?'pointer':'default';};
+  canvas.onclick=function(e){const b=hitPlayer(e);if(b>=0)openPlayerModal(teamKey,plc[b].idx);};
+  canvas.onmouseleave=function(){canvas.title='';};
+}
+
+const teamChartInstances=new Map();
+
+let squadSort={col:'s',dir:1},squadTeamKey='';
+function renderSquad(data,teamKey){
+  squadTeamKey=teamKey;
+  const sorted=[...data.players];
+  const col=squadSort.col;
+  sorted.sort((a,b)=>{
+    let va,vb;
+    switch(col){
+      case's':va=a.s;vb=b.s;break;
+      case'n':va=a.n.toLowerCase();vb=b.n.toLowerCase();break;
+      case'p':va=a.p;vb=b.p;break;
+      case'sp':va=a.sp||0;vb=b.sp||0;break;
+      case'pa':va=Math.round(((a.lp||0)+(a.lf||0))/2);vb=Math.round(((b.lp||0)+(b.lf||0))/2);break;
+      case'de':va=a.dp||0;vb=b.dp||0;break;
+      case'co':va=Math.round(((a.bc||0)+(a.tp||0))/2);vb=Math.round(((b.bc||0)+(b.tp||0))/2);break;
+      case'sk':va=popcount(a.sh)+popcount(a.sl);vb=popcount(b.sh)+popcount(b.sl);break;
+      case'o':va=a.o||0;vb=b.o||0;break;
+      default:va=a.s;vb=b.s;
+    }
+    if(va<vb)return -1*squadSort.dir;
+    if(va>vb)return 1*squadSort.dir;
+    return 0;
+  });
+  let html='<div class="panel-card"><h3>Plantilla</h3><div class="squad-table-wrap"><table class="squad-table"><thead><tr>';
+  const cols=[{k:'s',l:'#'},{k:'n',l:'Nom'},{k:'p',l:'Pos'},{k:'o',l:'OVR'},{k:'sk',l:'Hab'},{k:'sp',l:'Vel'},{k:'pa',l:'Pas'},{k:'de',l:'Def'},{k:'co',l:'Con'}];
+  html+=cols.map(c=>{
+    const isSort=squadSort.col===c.k;
+    return`<th onclick="sortSquad('${c.k}')" class="${isSort?(squadSort.dir===1?'sort-asc':'sort-desc'):''}">${c.l}<span class="sort-arrow">${isSort?(squadSort.dir===1?'\u25B2':'\u25BC'):'\u25B4\u25BE'}</span></th>`;
+  }).join('');
+  html+='</tr></thead><tbody>';
+  function popcount(n){n=n>>>0;n=n-(n>>>1&0x55555555);n=(n&0x33333333)+(n>>>2&0x33333333);return(n+(n>>>4)&0xF0F0F0F)*0x1010101>>>24}
+  sorted.forEach((pl)=>{
+    const origIdx=data.players.indexOf(pl);
+    const pn=POS_NAMES[pl.p];
+    const spd=pl.sp||0;const pas=Math.round((pl.lp+pl.lf)/2);const def=pl.dp||0;const con=Math.round((pl.bc+pl.tp)/2);
+    const bar=v=>`<span class="bar"><span class="bar-fill" style="width:${Math.min(v,100)}%"></span></span>`;
+    const ovrCls=pl.o>=90?'elite':pl.o>=85?'high':pl.o>=80?'mid':'';
+    const nSkills=popcount(pl.sh)+popcount(pl.sl);
+    html+=`<tr onclick="openPlayerModal('${teamKey.replace(/'/g,"\\'")}',${origIdx})" class="clickable-player"><td class="s-number">${pl.s}</td><td class="s-name">${pl.n}</td><td class="s-pos">${pn}</td><td class="s-ovr"><span class="badge ${ovrCls}">${Math.round(pl.o)}</span></td><td class="s-skills">${nSkills}</td><td class="s-stat">${bar(spd)}<span class="stat-val">${spd}</span></td><td class="s-stat">${bar(pas)}<span class="stat-val">${pas}</span></td><td class="s-stat">${bar(def)}<span class="stat-val">${def}</span></td><td class="s-stat">${bar(con)}<span class="stat-val">${con}</span></td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+
+function sortSquad(col){
+  if(squadSort.col===col)squadSort.dir*=-1;
+  else{squadSort.col=col;squadSort.dir=1}
+  if(squadTeamKey&&typeof TED_FULL!=='undefined'&&TED_FULL[squadTeamKey])renderPanel(TED_FULL[squadTeamKey],squadTeamKey);
+}
+
+function renderPanel(data,teamKey){
+  squadTeamKey=teamKey;
+  const c=document.getElementById('panelContent');
+  c.innerHTML=renderPanelHeader(data)+renderStrengths(data)+renderFormation(data,teamKey)+renderSquad(data,teamKey);
+  drawFormation(data,teamKey);
+}
+
+function renderResults(){
+  const grid=document.getElementById('resultsGrid');
+  const empty=document.getElementById('resultsEmpty');
+  grid.innerHTML='';
+  const allDrawn=[];
+  for(const key of drawnTeams){
+    const[pid,team]=key.split('::');
+    const patch=PATCHES.find(p=>p.id===pid);
+    const td=patch?patch.teams.find(t=>t.name===team):null;
+    allDrawn.push({team,patchId:pid,patchName:patch?patch.name:pid,starRating:td?td.starRating:0,playerCount:td?td.playerCount:0,teamKey:td?td.teamKey:''});
+  }
+  if(allDrawn.length===0){empty.style.display='block';return}
+  empty.style.display='none';
+  [...allDrawn].reverse().forEach((d,i)=>{
+    const card=document.createElement('div');
+    card.className='result-card';
+    card.onclick=()=>{if(d.teamKey)openTeamDetail(d.teamKey)};
+    card.innerHTML=`<div class="team-name">${d.team} <span class="stars" style="font-size:.75rem">${starsStr(d.starRating)}</span></div><div class="team-patch">${d.patchName} · ${d.playerCount} jug.</div><div class="team-number">#${allDrawn.length-i}</div>`;
+    card.title=`${d.team} — ${d.patchName} (${starsStr(d.starRating)})`;
+    grid.appendChild(card);
+  });
+}
+
+// --- Player Modal ---
+let playerChartInstance=null;
+function searchName(n){const parts=n.replace(/['\u2019]/g,'').trim().split(/\s+/);return parts[parts.length-1]}
+function openPlayerModal(teamKey,playerIdx){
+  const overlay=document.getElementById('playerModalOverlay');
+  overlay.classList.add('active');
+  document.body.style.overflow='hidden';
+  document.getElementById('playerModalContent').innerHTML='<div class="pm-content"><div style="text-align:center;padding:40px;color:#5a7a5a">Carregant…</div></div>';
+  loadFullData(teamKey,()=>{
+    const team=TED_FULL[teamKey];
+    if(!team||!team.players[playerIdx]){document.getElementById('playerModalContent').innerHTML='<div class="pm-content"><p style="text-align:center;color:#5a7a5a;padding:40px">Jugador no trobat</p></div>';return}
+    renderPlayerModal(team,team.players[playerIdx]);
+  });
+}
+function closePlayerModal(){
+  if(playerChartInstance){playerChartInstance.destroy();playerChartInstance=null}
+  document.getElementById('playerModalOverlay').classList.remove('active');
+  document.body.style.overflow='';
+}
+function renderPlayerModal(team,pl){
+  const formLabels=['—','\u2193','\u2198','\u2192','\u2197','\u2191','\u2605','\u2605\u2605'];
+  const isGK=pl.p===0;
+  const secPos=[];
+  if(pl.pp!==undefined)for(let i=0;i<13;i++){if(((pl.pp>>>(i*2))&3)>=2&&i!==pl.p)secPos.push(POS_NAMES[i])}
+  const wfU=pl.wfU||0,wfA=pl.wfA||0;
+  const footDir=pl.sf!==undefined?(pl.sf===1?2:1):wfU; // sf: 0=dretà,1=esquerrà → 2=esq,1=dret; fallback wfU
+  const footNames=['—','Dretà','Esquerrà','Ambdós'];
+  const footLabel=footNames[footDir]||'?';
+  const statKeys=isGK?['ap','bc','tp','lp','lf','fn','pk','cr','sp','ac','jm','pc','bl','st','bw','ag','dp','hd','db','kp','ga','gc','gr','gl','gx']:['ap','bc','tp','lp','lf','fn','pk','cr','sp','ac','jm','pc','bl','st','bw','ag','dp','hd','db','kp'];
+  const html=`<div class="pm-content">
+    <div class="pm-header">
+      <div class="pm-name">${pl.n} <a class="wiki-link" href="https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(searchName(pl.n))}+footballer" target="_blank" rel="noopener" title="Cerca a Wikipedia">W</a><a class="wiki-link" href="https://www.transfermarkt.com/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(searchName(pl.n))}" target="_blank" rel="noopener" title="Cerca a Transfermarkt">T</a></div>
+      <div class="pm-pos">${POS_NAMES[pl.p]}${secPos.length?' <span class="pm-pos-sec">'+secPos.join('/')+'</span>':''}</div>
+      <div class="pm-ovr">${pl.o||'?'}</div>
+    </div>
+    <div class="pm-meta">
+      <span>${team.teamName}</span>
+      <span>${pl.h||'?'} cm</span>
+      <span>${pl.w||'?'} kg</span>
+      <span title="Cama dominant" class="wf-visual"><span class="wf-foot-icon" style="background:${footDir===2?'#60a0f0':footDir===3?'#f0c040':'#3a4a3a'}">${footLabel[0]}</span><span class="wf-foot-label">${footLabel}</span></span>
+      <span>Forma: ${formLabels[pl.f]||'?'}</span>
+    </div>
+    <div class="pm-chart-area">
+      <canvas id="playerRadar"></canvas>
+    </div>
+    <div style="text-align:center;font-size:.65rem;color:#4a5a4a;margin:-8px 0 12px">Valors 0–100 (màxim observat ~99)</div>
+    <div class="pm-stat-grid${isGK?' gk-mode':''}" id="pmStatGrid"></div>
+    <div class="pm-skills" id="pmSkills"></div>
+  </div>`;
+  document.getElementById('playerModalContent').innerHTML=html;
+  setTimeout(()=>renderPlayerRadar(pl,isGK),50);
+  const grid=document.getElementById('pmStatGrid');
+  const catColors={phy:'cat-phy',tec:'cat-tec',men:'cat-men',gk:'cat-gk'};
+  for(const k of statKeys){
+    const val=pl[k];if(val===undefined)continue;
+    const pct=Math.min(val,100);
+    const cat=STAT_CATS[k]||'tec';
+    const div=document.createElement('div');div.className='pm-stat-row';
+    div.innerHTML=`<span class="pm-slabel">${STAT_LABELS[k]||k}</span><div class="pm-strack"><div class="pm-sfill ${catColors[cat]}" style="width:${pct}%"></div></div><span class="pm-sval">${val}</span>`;
+    grid.appendChild(div);
+  }
+  const skillEl=document.getElementById('pmSkills');
+  const skills=[];
+  for(let i=0;i<32;i++){if((pl.sl>>>0)&(1<<i))skills.push(SKILL_NAMES[i])}
+  for(let i=0;i<16;i++){if((pl.sh>>>0)&(1<<i))skills.push(SKILL_NAMES[32+i])}
+  if(skills.length>0)skillEl.innerHTML=skills.map(s=>`<span class="skill-tag">${s}</span>`).join('');
+  else skillEl.innerHTML='<span style="color:#5a7a5a;font-size:.8rem;font-style:italic">Sense habilitats</span>';
+}
+function renderPlayerRadar(pl,isGK){
+  if(playerChartInstance){playerChartInstance.destroy();playerChartInstance=null}
+  const canvas=document.getElementById('playerRadar');
+  if(!canvas)return;
+  const statKeys=isGK?['ap','bc','tp','lp','lf','fn','pk','cr','sp','ac','jm','pc','bl','st','bw','ag','dp','hd','db','kp','ga','gc','gr','gl','gx']:['ap','bc','tp','lp','lf','fn','pk','cr','sp','ac','jm','pc','bl','st','bw','ag','dp','hd','db','kp'];
+  const data=statKeys.map(k=>Math.round(pl[k]||0));
+  const labels=statKeys.map(k=>STAT_LABELS[k]||k);
+  playerChartInstance=new Chart(canvas,{
+    type:'radar',
+    data:{
+      labels,
+      datasets:[{
+        label:pl.n,data,
+        backgroundColor:'rgba(59,130,246,.12)',
+        borderColor:'rgba(59,130,246,.7)',
+        borderWidth:2,
+        pointBackgroundColor:'rgba(59,130,246,.6)',
+        pointBorderColor:'rgba(59,130,246,.3)',
+        pointRadius:3,pointHoverRadius:5
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.r+' / 100'}}},
+      scales:{
+        r:{
+          beginAtZero:true,max:100,
+          ticks:{stepSize:20,color:'rgba(255,255,255,.25)',font:{size:9},backdropColor:'transparent'},
+          grid:{color:'rgba(255,255,255,.06)',lineWidth:1},
+          angleLines:{color:'rgba(255,255,255,.05)',lineWidth:1},
+          pointLabels:{color:'rgba(255,255,255,.4)',font:{size:9}}
+        }
+      }
+    }
+  });
+}
+
+document.getElementById('panelClose').addEventListener('click',closeTeamPanel);
+document.getElementById('teamPanelOverlay').addEventListener('click',function(e){if(e.target===this)closeTeamPanel()});
+document.getElementById('playerModalOverlay').addEventListener('click',function(e){if(e.target===this)closePlayerModal()});
+document.addEventListener('DOMContentLoaded',init);
+
+function resetAll(){
+  if(isSpinning)return;
+  drawnTeams.clear();
+  renderResults();
+  updateTeamListMarkers();
+  document.getElementById('numDraw').value=1;
+}
+</script>
+</body>
+</html>
