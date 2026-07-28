@@ -1716,51 +1716,128 @@ function drawFormation(data,teamKey){
 
   const starters=data.players.slice(0,11);
   const catCol={gk:'rgba(59,130,246,0.9)',def:'rgba(74,122,217,0.85)',mid:'rgba(80,200,120,0.85)',fwd:'rgba(231,76,60,0.85)'};
-  const Y_BANDS=[
-    {y:92, pad:50, cen:[0], wide:[]},
-    {y:76, pad:28, cen:[1], wide:[2,3]},
-    {y:63, pad:30, cen:[4], wide:[]},
-    {y:50, pad:20, cen:[5], wide:[6,7]},
-    {y:36, pad:25, cen:[8,11], wide:[]},
-    {y:22, pad:20, cen:[], wide:[9,10]},
-    {y:14, pad:30, cen:[12], wide:[]},
-  ];
-  const plc=[];
+  const catOf=p=>{const p0=p.p;return p0===0?'gk':[1,2,3].includes(p0)?'def':[4,5,6,7,8].includes(p0)?'mid':'fwd'};
 
-  for(const band of Y_BANDS){
-    const cen=[];let lw=null,rw=null;
-    for(let i=0;i<starters.length;i++){
-      const pos=starters[i].p;
-      if(band.cen.includes(pos)) cen.push({player:starters[i],idx:i});
-      else if(band.wide.includes(pos)){
-        if(pos===2||pos===6||pos===9) lw={player:starters[i],idx:i};
-        else rw={player:starters[i],idx:i};
+  const gk=starters.filter(p=>p.p===0);
+  const defs=starters.filter(p=>[1,2,3].includes(p.p));
+  const dmfs=starters.filter(p=>p.p===4);
+  const cmfs=starters.filter(p=>[5,6,7].includes(p.p));
+  const amfs=starters.filter(p=>p.p===8);
+  const mids=[...dmfs,...cmfs,...amfs];
+  const fwds=starters.filter(p=>[9,10,11,12].includes(p.p));
+
+  const R2=12;
+
+  function distributeX(players,left,right){
+    const n=players.length;
+    if(n===0)return[];
+    if(n===1)return[{x:(left+right)/2,player:players[0]}];
+    const step=(right-left)/(n-1);
+    return players.map((pl,i)=>({x:left+step*i,player:pl}));
+  }
+
+  function makeRow(players,yPct,left,right){
+    return distributeX(players,left,right).map(r=>({...r,y:yPct}));
+  }
+
+  function spreadRow(row){
+    if(row.length<=1)return row;
+    row.sort((a,b)=>a.x-b.x);
+    const n=row.length;
+    const minX=row[0].x,maxX=row[n-1].x;
+    const span=maxX-minX;
+    const needed=R2*2.2*(n-1);
+    if(span<needed){
+      const cx=(minX+maxX)/2;
+      const half=needed/2;
+      const newMin=cx-half,newMax=cx+half;
+      if(newMin<4){const s=4-newMin;for(const r of row)r.x+=s}
+      else if(newMax>96){const s=96-newMax;for(const r of row)r.x+=s}
+      const nMin=row[0].x,nMax=row[n-1].x;
+      const nSpan=nMax-nMin;
+      for(let i=0;i<n;i++){
+        row[i].x=nSpan>0?nMin+i*(nSpan)/(n-1):(nMin+nMax)/2;
       }
     }
-    const total=cen.length+(lw?1:0)+(rw?1:0);
-    if(total===0)continue;
-    const xs=[];
-    if(lw) xs.push({x:8, player:lw.player, idx:lw.idx});
-    if(rw) xs.push({x:92, player:rw.player, idx:rw.idx});
-    const n=cen.length;
-    if(n>0){
-      const min=band.pad,max=100-band.pad;
-      for(let j=0;j<n;j++){
-        const x=n>1?min+j*(max-min)/(n-1):(min+max)/2;
-        xs.push({x,player:cen[j].player,idx:cen[j].idx});
+    row.forEach(r=>{r.x=Math.max(4,Math.min(96,r.x))});
+    return row;
+  }
+
+  const hasWideMids=cmfs.some(p=>[6,7].includes(p.p));
+  const hasWideFwds=fwds.some(p=>[9,10].includes(p.p));
+
+  let yGK=93,yDEF=75,yDMF=63,yMID=48,yAMF=36,yFWD=22;
+
+  if(dmfs.length===0&&cmfs.length<=2&&amfs.length>=1){
+    yDEF=76;yMID=52;yAMF=36;yFWD=22;
+  }else if(dmfs.length>=1&&cmfs.length<=1&&amfs.length===0){
+    yDEF=76;yDMF=60;yMID=46;yFWD=22;
+  }
+
+  const lines=[];
+  lines.push(...makeRow(gk,yGK,40,60));
+
+  const defRange=hasWideMids?[8,92]:[12,88];
+  lines.push(...makeRow(defs,yDEF,defRange[0],defRange[1]));
+
+  if(dmfs.length){
+    lines.push(...makeRow(dmfs,yDMF,25,75));
+  }
+
+  if(cmfs.length){
+    const midLeft=cmfs.filter(p=>p.p===6);
+    const midRight=cmfs.filter(p=>p.p===7);
+    const midCenter=cmfs.filter(p=>p.p===5);
+    if(midLeft.length||midRight.length){
+      const midRange=[8,92];
+      const placed=[];
+      if(midLeft.length)placed.push({x:12,player:midLeft[0]});
+      if(midRight.length)placed.push({x:88,player:midRight[0]});
+      if(midCenter.length){
+        const cx=(midLeft.length?12:50)+(midRight.length?88:50);
+        const avgCx=cx/(1+(midLeft.length?1:0)+(midRight.length?1:0));
+        for(const p of midCenter)placed.push({x:avgCx,player:p});
       }
-    }
-    const yBase=band.y;
-    for(let j=0;j<xs.length;j++){
-      const py=T+yBase/100*PH;
-      const px=L+xs[j].x/100*PW;
-      const pos=xs[j].player.p;
-      let cat;if(pos===0)cat='gk';else if([1,2,3].includes(pos))cat='def';else if([4,5,6,7,8].includes(pos))cat='mid';else cat='fwd';
-      plc.push({player:xs[j].player,px,py,cat,pos,idx:xs[j].idx});
+      for(const p of placed)lines.push({...p,y:yMID});
+    }else{
+      lines.push(...makeRow(cmfs,yMID,15,85));
     }
   }
 
-  const R2=12;
+  if(amfs.length){
+    lines.push(...makeRow(amfs,yAMF,20,80));
+  }
+
+  const fwdLeft=fwds.filter(p=>p.p===9);
+  const fwdRight=fwds.filter(p=>p.p===10);
+  const fwdCenter=fwds.filter(p=>[11,12].includes(p.p));
+  if(fwdLeft.length||fwdRight.length){
+    const placed=[];
+    if(fwdLeft.length)placed.push({x:14,player:fwdLeft[0]});
+    if(fwdRight.length)placed.push({x:86,player:fwdRight[0]});
+    if(fwdCenter.length){
+      const cx=(fwdLeft.length?14:50)+(fwdRight.length?86:50);
+      const avgCx=cx/(1+(fwdLeft.length?1:0)+(fwdRight.length?1:0));
+      for(const p of fwdCenter)placed.push({x:avgCx,player:p});
+    }
+    for(const p of placed)lines.push({...p,y:yFWD});
+  }else{
+    lines.push(...makeRow(fwds,yFWD,15,85));
+  }
+
+  for(const y of [yDEF,yDMF,yMID,yAMF,yFWD]){
+    const row=lines.filter(r=>r.y===y);
+    if(row.length>1)spreadRow(row);
+  }
+
+  const plc=[];
+  for(const r of lines){
+    const px=L+r.x/100*PW;
+    const py=T+r.y/100*PH;
+    const cat=catOf(r.player);
+    plc.push({player:r.player,px,py,cat,pos:r.player.p,idx:starters.indexOf(r.player)});
+  }
+
   for(const p of plc){
     const g=ctx.createRadialGradient(p.px,p.py,R2*0.5,p.px,p.py,R2*2.5);
     g.addColorStop(0,catCol[p.cat].replace('0.85','0.15').replace('0.9','0.15'));
@@ -1779,7 +1856,7 @@ function drawFormation(data,teamKey){
     ctx.fillStyle='rgba(255,255,255,0.75)';
     ctx.fillText(Math.round(p.player.o),p.px,p.py+7);
 
-    let nm=p.player.n;if(nm.length>11)nm=nm.slice(0,9)+'…';
+    let nm=p.player.n;if(nm.length>11)nm=nm.slice(0,9)+'\u2026';
     ctx.fillStyle='#c8d8c8';ctx.font='10px sans-serif';ctx.textBaseline='top';
     ctx.fillText(nm,p.px,p.py+R2+3);
 
