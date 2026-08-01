@@ -321,6 +321,12 @@
   .patch-header:hover{background:var(--bg-hover)}
   .patch-header h3{font-size:1rem;font-weight:700;color:var(--text-secondary)}
   .patch-header .meta{display:flex;align-items:center;gap:12px}
+  .patch-header .patch-video{
+    color:var(--text-faint);font-size:.68rem;text-decoration:none;
+    display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;
+    border:1px solid var(--glass-border);transition:all .2s
+  }
+  .patch-header .patch-video:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
   .patch-header .count-badge{
     background:var(--bg-surface-alt);padding:4px 12px;border-radius:20px;font-size:.72rem;
     color:var(--text-muted);border:1px solid var(--glass-border);font-weight:600
@@ -953,6 +959,7 @@
 const PATCH_IDS=['bestWorldCups','superLeague','superPatch','superPatch80s','superPatch90s'];
 const PATCH_NAMES={bestWorldCups:'BEST OF WORLD CUPS - 195 TEAMS',superLeague:'SUPER LEAGUE - 194 CLASSIC TEAMS',superPatch:'SUPER PATCH - 303 TEAMS (250 Legends + 53 Internationals)',superPatch80s:'SUPER PATCH 80s',superPatch90s:'SUPER PATCH 1990s'};
 const PATCH_FULLNAMES={bestWorldCups:'BEST OF WORLD CUPS - 195 TEAMS - PES 2021',superLeague:'SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS',superPatch:'SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA',superPatch80s:'Super Patch 80s - Option File - PES 2021 - Mestre Kamika',superPatch90s:'SUPER PATCH 1990S - PES 2021 - OPTION FILE - MESTRE KAMIKA'};
+const PATCH_VIDEOS={bestWorldCups:'https://www.youtube.com/watch?v=Vq_WvqWmo40',superLeague:'https://www.youtube.com/watch?v=Zh0xn5kElUQ',superPatch:'https://www.youtube.com/watch?v=S599miXyMZg',superPatch80s:'https://www.youtube.com/watch?v=6aWzU_GgVrQ',superPatch90s:'https://www.youtube.com/watch?v=YR5bE2YH6GM'};
 const FULL_TO_FOLDER_ID={'BEST OF WORLD CUPS - 195 TEAMS - PES 2021':'bestWorldCups','SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS':'superLeague','SUPER PATCH 250 TEAMS + 53 INTERNATIONAL TEAMS - PES 2021 - MESTRE KAMIKA':'superPatch','Super Patch 80s - Option File - PES 2021 - Mestre Kamika':'superPatch80s','SUPER PATCH 1990S - PES 2021 - OPTION FILE - MESTRE KAMIKA':'superPatch90s'};
 let TED_DATA=null,TED_FULL={},ready=false;
 fetch('data/light.json').then(r=>r.json()).then(d=>{TED_DATA=d;ready=true;if(window._initOnReady)init()});
@@ -1168,7 +1175,7 @@ async function loadFullData(teamKey,cb){
 
 function init(){
   if(!TED_DATA){window._initOnReady=true;return}
-  PATCHES=TED_DATA.teams.map(p=>({id:FULL_TO_FOLDER_ID[p.patch]||p.patch,name:PATCH_NAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,fullName:PATCH_FULLNAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,patchDir:p.patch,teams:p.teams.map(t=>({name:t.teamName,teamKey:t.teamKey,playerCount:t.playerCount,starRating:t.starRating})).sort((a,b)=>a.name.localeCompare(b.name))}));
+  PATCHES=TED_DATA.teams.map(p=>({id:FULL_TO_FOLDER_ID[p.patch]||p.patch,name:PATCH_NAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,fullName:PATCH_FULLNAMES[FULL_TO_FOLDER_ID[p.patch]]||p.patch,video:PATCH_VIDEOS[FULL_TO_FOLDER_ID[p.patch]]||'',patchDir:p.patch,teams:p.teams.map(t=>({name:t.teamName,teamKey:t.teamKey,playerCount:t.playerCount,starRating:t.starRating})).sort((a,b)=>a.name.localeCompare(b.name))}));
   renderPatchCheckboxes();
   renderTeamLists();
   document.getElementById('btnDraw').addEventListener('click',drawTeams);
@@ -1190,8 +1197,8 @@ function renderPatchCheckboxes(){
 function renderTeamLists(){
   const c=document.getElementById('teamLists');
   const lvl=getLevel();
-  c.innerHTML=PATCHES.map((p,idx)=>{const teams=lvl>0?p.teams.filter(t=>t.starRating===lvl):p.teams;return`<div class="patch-section"><div class="patch-header" data-index="${idx}" title="Expandir o col·lapsar llista d'equips"><h3>${p.fullName}</h3><div class="meta"><span class="count-badge">${teams.length} equips</span><span class="toggle-icon">\u25BC</span></div></div><div class="team-grid" id="grid-${p.id}">${teams.map(t=>`<div class="team-item" data-team="${t.name}" data-patch="${p.id}" data-teamkey="${t.teamKey.replace(/"/g,'&quot;')}" title="${t.name.replace(/"/g,'&quot;')}"><span class="stars s${t.starRating}" style="margin-right:4px">${starsStr(t.starRating)}</span>${t.name}</div>`).join('')}</div></div>`}).join('');
-  document.querySelectorAll('.patch-header').forEach(h=>{h.addEventListener('click',()=>{const g=h.nextElementSibling;const i=h.querySelector('.toggle-icon');g.classList.toggle('open');i.classList.toggle('open')})});
+  c.innerHTML=PATCHES.map((p,idx)=>{const teams=lvl>0?p.teams.filter(t=>t.starRating===lvl):p.teams;return`<div class="patch-section"><div class="patch-header" data-index="${idx}" title="Expandir o col·lapsar llista d'equips"><h3>${p.fullName}</h3><div class="meta">${p.video?`<a class="patch-video" href="${p.video}" target="_blank" rel="noopener" title="Veure vídeo del patch">\u25B6</a>`:''}<span class="count-badge">${teams.length} equips</span><span class="toggle-icon">\u25BC</span></div></div><div class="team-grid" id="grid-${p.id}">${teams.map(t=>`<div class="team-item" data-team="${t.name}" data-patch="${p.id}" data-teamkey="${t.teamKey.replace(/"/g,'&quot;')}" title="${t.name.replace(/"/g,'&quot;')}"><span class="stars s${t.starRating}" style="margin-right:4px">${starsStr(t.starRating)}</span>${t.name}</div>`).join('')}</div></div>`}).join('');
+  document.querySelectorAll('.patch-header').forEach(h=>{h.addEventListener('click',e=>{if(e.target.closest('a'))return;const g=h.nextElementSibling;const i=h.querySelector('.toggle-icon');g.classList.toggle('open');i.classList.toggle('open')})});
 }
 
 function getSelectedPatches(){return[...document.querySelectorAll('.patch-cb:checked')].map(cb=>cb.value)}
