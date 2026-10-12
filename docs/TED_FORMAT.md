@@ -269,13 +269,25 @@ assignment = data[756:1040]
 | `shirtNumbers` | 164 | 2×40 | Array of 40 uint16 shirt numbers |
 | `areTransferred` | 244 | 1×40 | Array of 40 uint8 flags |
 
-Formation positions (11 players):
+The 33 bytes at `244..276` (absolute `1000..1040`) are the tail of the
+`areTransferred` flag array — they are **not** formation data.
+
+### Formation positions (11 slots)
+
+The starting-XI tactic slots live in the **tactics** section, not in the
+assignment block:
 
 ```python
-formation = data[756 + 284 - 33:]  # last 33 bytes of assignment
+tactics = data[1040:1668]
+formation = list(tactics[4:15])  # absolute bytes 1044..1054, one code per slot
 ```
 
-Position values: 0=GK, 1=CB, 2=LB, 3=RB, 4=DMF, 5=CMF, 6=LMf, 7=RMF, 8=AMF, 9=LWF, 10=RWF, 11=SS, 12=CF.
+Verified against 60 random `.ted` files: every value is in `0..12` and there
+is exactly one `0` (GK). The remaining `tactics` bytes hold 3 presets, player
+orders and instructions; only the first preset's formation is read.
+
+Position values (same indexing as `POS_ORDER`): 0=GK, 1=CB, 2=LB, 3=RB, 4=DMF,
+5=CMF, 6=LMF, 7=RMF, 8=AMF, 9=LWF, 10=RWF, 11=SS, 12=CF.
 
 ---
 

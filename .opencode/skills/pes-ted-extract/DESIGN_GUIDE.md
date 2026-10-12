@@ -136,7 +136,6 @@ const STAT_CATS = {
 If the field is a stat, it automatically appears in:
 - The player modal stat grid (20-stats or 25-stats for GK)
 - The spider/radar chart
-- The team strengths/weaknesses panel
 
 ### 4. Frontend — Squad table
 

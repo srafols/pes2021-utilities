@@ -60,6 +60,24 @@ for i in range(80, len(raw)):
 | `attackingProwess` | `ap` | int | 0–127 |
 | …20 stats… | — | int | Each stored as a single‑letter key |
 
+## Team-level fields (data/full/*.json)
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `teamName` | string | Team name |
+| `shortName` | string | 3-letter code |
+| `stadium` | string | Stadium name |
+| `ovr` | number | Team OVR (0–127 scale) |
+| `starRating` | int | 1–5 stars |
+| `formation` | int[] | Tactic slot code per starter, aligned with `players[0..n]` |
+| `players` | array | Starters first (in slot order), then bench |
+
+`formation[i]` is the position code (`POS_ORDER` index) of the slot that
+`players[i]` occupies, so the frontend can draw the real lineup. It comes from
+`tactics[4:15]` (absolute bytes 1044–1054) — **not** from the assignment block.
+Verified across all 1068 teams: every array has 11 slots and exactly one GK.
+`formation.length` also marks where the starting XI ends and the bench begins.
+
 ## Skill bitmask decoding (client-side, index.html:1347-1349)
 
 ```javascript
@@ -133,11 +151,17 @@ Vegeu `docs/STATS_SCALE.md` per més detall sobre escales i llindars.
 ## Regenerating data
 
 ```bash
-python3 scripts/extract_teams.py
+python3 scripts/extract_teams.py "/path/to/patches"
+# or: PES_PATCH_BASE="/path/to/patches" python3 scripts/extract_teams.py
 # Outputs: data/ted_data.json, data/light.json, data/full/*.json
 ```
 
-Takes ~2 minutes for all 693 files.
+The patch directory can be passed as an argument or via `PES_PATCH_BASE`; if
+neither is given, the script looks for the patch folders next to the project
+root. If no `.ted` files are found it aborts **without** overwriting `data/`.
+Output JSON is minified to stay byte-stable with the committed data.
+
+Takes ~15 seconds for all 1070 files.
 
 ## Web page
 
@@ -153,8 +177,7 @@ Takes ~2 minutes for all 693 files.
 - **Player search** with accent-insensitive matching, filters by position/patch/foot/skill (multi-select), sorted by OVR descending.
 - **Skills glossary / Help** — click "📖 Guia" to browse all 48 skills with Catalan names and descriptions, organized by category; click skills to add/remove filter tags (multi-select). Players must have ALL selected skills to match.
 - **Team detail panel** with:
-  - Strengths/weaknesses (top/bottom 3 team stats)
-  - Formation grid (11 starters grouped by category)
+  - Formation canvas: starters placed on their real tactic slots + shape label + bench chips
   - Sortable squad table (click column headers)
   - Player spider chart (20-stats radar on Canvas)
   - Bar charts for all stats with category-colored fills

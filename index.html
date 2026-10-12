@@ -568,30 +568,27 @@
     border:1px solid var(--glass-border);font-weight:500
   }
 
-  .strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .strength-col h4{font-size:.68rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);margin-bottom:10px;font-weight:700}
-  .strength-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.8rem}
-  .strength-item .s-label{color:var(--text-muted);width:85px;text-align:right;flex-shrink:0;font-weight:500;font-size:.76rem}
-  .strength-item .s-bar{flex:1;height:6px;background:var(--bg-surface-alt);border-radius:3px;overflow:hidden}
-  .strength-item .s-fill{height:100%;border-radius:3px;transition:width .5s}
-  .strength-item .s-val{width:28px;text-align:right;font-family:var(--font-mono);font-size:.73rem;color:var(--text-muted)}
-
-  .formation-grid{
-    display:grid;grid-template-columns:repeat(5,1fr);gap:7px;max-width:400px;margin:0 auto
-  }
-  .formation-slot{
-    background:var(--bg-surface-alt);border:1.5px solid var(--glass-border);border-radius:10px;
-    padding:8px 5px;text-align:center;font-size:.7rem;transition:all .2s
-  }
-  .formation-slot:hover{border-color:var(--accent);transform:translateY(-1px)}
-  .formation-slot .f-name{color:var(--text-secondary);font-weight:700;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .formation-slot .f-pos{color:var(--text-dim);font-size:.62rem}
-  .formation-slot .f-shirt{color:var(--text-faint);font-size:.6rem}
-  .formation-slot.gk{border-color:var(--accent);border-width:2px;grid-column:3}
-  .formation-slot.def{border-color:var(--stat-tec)}
-  .formation-slot.mid{border-color:var(--green-pitch)}
-  .formation-slot.fwd{border-color:var(--stat-phy-to)}
   .formation-canvas{width:100%;max-width:400px;aspect-ratio:380/490;display:block;border-radius:14px;margin:0 auto}
+  .formation-shape{
+    font-family:var(--font-mono);font-size:.82rem;color:var(--accent);
+    background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.35);
+    border-radius:8px;padding:1px 9px;margin-left:8px;letter-spacing:2px;vertical-align:middle
+  }
+  .bench-strip{margin-top:16px;border-top:1px solid var(--border-light);padding-top:12px}
+  .bench-title{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:9px;font-weight:700}
+  .bench-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .bench-chip{
+    display:inline-flex;align-items:center;gap:6px;background:var(--bg-hover);
+    border:1.5px solid var(--border-light);border-radius:999px;padding:4px 10px 4px 5px;
+    font-size:.74rem;color:var(--text-secondary);cursor:pointer;transition:all .2s
+  }
+  .bench-chip:hover{border-color:var(--accent);color:var(--text-primary);transform:translateY(-1px)}
+  .bench-chip .bc-num{
+    display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;
+    background:rgba(34,211,238,.12);border-radius:50%;font-family:var(--font-mono);
+    font-size:.67rem;color:var(--accent);font-weight:700
+  }
+  .bench-chip .bc-pos{font-size:.62rem;color:var(--text-muted)}
 
   .squad-table{width:100%;border-collapse:collapse;font-size:.8rem}
   .squad-table th{
@@ -746,7 +743,6 @@
     .squad-table{font-size:.72rem}
     .squad-table th,.squad-table td{padding:5px 7px}
     .squad-table .s-stat .bar{width:28px}
-    .formation-grid{max-width:320px}
   }
   @media(max-width:640px){
     .container{padding:0 14px}
@@ -779,13 +775,9 @@
     .panel-card{margin:0 14px 12px;padding:16px}
     .panel-card:first-of-type{margin-top:12px}
     .panel-close{margin:12px}
-    .strength-grid{grid-template-columns:1fr}
-    .strength-item .s-label{width:70px;font-size:.72rem}
     .player-stats .ps-chart-area{flex-direction:column;align-items:center}
     .player-stats .ps-chart-area canvas{width:180px;height:180px}
-    .formation-grid{max-width:280px;gap:5px}
-    .formation-slot{padding:6px 4px;font-size:.64rem}
-    .formation-slot .f-name{font-size:.67rem}
+    .bench-chip{font-size:.7rem}
     .search-filter-bar{flex-wrap:wrap;gap:6px}
     .search-filter-bar .sf-group select{min-width:0;font-size:.7rem;padding:4px 6px}
     .search-filter-bar .sf-group label{font-size:.58rem}
@@ -1668,25 +1660,44 @@ function renderPanelHeader(data){
   </div>`;
 }
 
-function renderStrengths(data){
-  const statKeys=[['ap','Atac'],['bc','Control'],['tp','Regat'],['lp','Passada B'],['lf','Passada A'],['fn','Finalització'],['pk','Precisió'],['cr','Efecte'],['sp','Velocitat'],['ac','Accel.'],['jm','Salt'],['pc','C. Físic'],['bl','Equilibri'],['st','Resist.'],['bw','Robat.'],['ag','Agress.'],['dp','Defensa'],['hd','Cap'],['db','Regateig'],['kp','Pot. Xut']];
-  const avgs={};
-  for(const[k]of statKeys){
-    let sum=0;for(const pl of data.players)sum+=pl[k]||0;
-    avgs[k]=Math.round(sum/data.players.length);
-  }
-  const sorted=[...statKeys].sort((a,b)=>avgs[b[0]]-avgs[a[0]]);
-  const top3=sorted.slice(0,3);
-  const bot3=sorted.slice(-3).reverse();
-  const bar=(v,clr)=>{const p=Math.round(v/100*95+5);return`<div class="s-bar"><div class="s-fill" style="width:${p}%;background:${clr}"></div></div>`};
-  return`<div class="panel-card"><h3>Fortaleses i Febleses</h3><div class="strength-grid">
-    <div class="strength-col"><h4>Fortaleses</h4>${top3.map(s=>`<div class="strength-item"><span class="s-label">${s[1]}</span>${bar(avgs[s[0]],'#3b82f6')}<span class="s-val">${avgs[s[0]]}</span></div>`).join('')}</div>
-    <div class="strength-col"><h4>Febleses</h4>${bot3.map(s=>`<div class="strength-item"><span class="s-label">${s[1]}</span>${bar(avgs[s[0]],'#5a7a5a')}<span class="s-val">${avgs[s[0]]}</span></div>`).join('')}</div>
-  </div></div>`;
+// --- Lineup / formation ---
+// Level of each position code: 0 GK, 1 CB, 2 LB, 3 RB, 4 DMF, 5 CMF,
+// 6 LMF, 7 RMF, 8 AMF, 9 LWF, 10 RWF, 11 SS, 12 CF.
+const LEVEL_OF=['gk','def','def','def','dmf','cmf','cmf','cmf','amf','fwd','fwd','fwd','fwd'];
+// Side preference per code: 0 = left, 1 = centre, 2 = right.
+const SIDE_OF=[1,1,0,2,1,1,0,2,1,0,2,1,1];
+const LEVEL_Y={gk:92,def:74,dmf:60,cmf:47,amf:34,fwd:20};
+const LEVEL_ORDER=['gk','def','dmf','cmf','amf','fwd'];
+const LEVEL_CAT={gk:'gk',def:'def',dmf:'mid',cmf:'mid',amf:'mid',fwd:'fwd'};
+const CAT_COL={gk:'rgba(59,130,246,0.9)',def:'rgba(74,122,217,0.85)',mid:'rgba(80,200,120,0.85)',fwd:'rgba(231,76,60,0.85)'};
+const CAT_GLOW={gk:'rgba(59,130,246,0.16)',def:'rgba(74,122,217,0.16)',mid:'rgba(80,200,120,0.16)',fwd:'rgba(231,76,60,0.16)'};
+
+function levelOf(code){return(code>=0&&code<LEVEL_OF.length)?LEVEL_OF[code]:'cmf'}
+// Tactic slot codes, one per starter, aligned with data.players[0:n].
+function getFormationSlots(data){
+  if(Array.isArray(data.formation)&&data.formation.length)return data.formation.slice();
+  return data.players.slice(0,11).map(p=>p.p);
+}
+function formationShape(slots){
+  const c={def:0,dmf:0,cmf:0,amf:0,fwd:0};
+  slots.forEach(v=>{const l=levelOf(v);if(l!=='gk')c[l]++});
+  const parts=[c.def,c.dmf,c.cmf,c.amf,c.fwd].filter(x=>x>0);
+  return parts.length?parts.join('-'):'\u2014';
 }
 
 function renderFormation(data,teamKey){
-  return '<div class="panel-card"><h3>Alineació</h3><canvas id="fc-'+teamKey.replace(/[^a-zA-Z0-9]/g,'_')+'" class="formation-canvas"></canvas></div>';
+  const cid='fc-'+teamKey.replace(/[^a-zA-Z0-9]/g,'_');
+  const shape=formationShape(getFormationSlots(data));
+  return '<div class="panel-card"><h3>Alineació <span class="formation-shape">'+shape+'</span></h3><canvas id="'+cid+'" class="formation-canvas"></canvas>'+renderBench(data,teamKey)+'</div>';
+}
+
+function renderBench(data,teamKey){
+  const n=getFormationSlots(data).length;
+  const bench=data.players.slice(n);
+  if(!bench.length)return'';
+  const tk=teamKey.replace(/'/g,"\\'");
+  const chips=bench.map((pl,bi)=>`<span class="bench-chip" onclick="openPlayerModal('${tk}',${n+bi})" title="Veure fitxa"><span class="bc-num">${pl.s}</span>${pl.n}<span class="bc-pos">${POS_NAMES[pl.p]}</span></span>`).join('');
+  return `<div class="bench-strip"><div class="bench-title">Banqueta (${bench.length})</div><div class="bench-chips">${chips}</div></div>`;
 }
 
 function drawFormation(data,teamKey){
@@ -1701,11 +1712,12 @@ function drawFormation(data,teamKey){
 
   const pd=14, L=pd,R=W-pd,T=pd,B=H-pd,PW=R-L,PH=B-T;
 
+  // --- Pitch background ---
   ctx.fillStyle='#1a3a1a';
   ctx.fillRect(0,0,W,H);
   for(let i=0;i<10;i++){ctx.fillStyle=i%2===0?'#1e401e':'#1a3a1a';ctx.fillRect(L,T+i*PH/10,PW,PH/10+1)}
 
-  ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1.5;
+  ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1.5;
   ctx.strokeRect(L,T,PW,PH);
   ctx.beginPath();ctx.moveTo(L,T+PH/2);ctx.lineTo(R,T+PH/2);ctx.stroke();
   ctx.beginPath();ctx.arc(L+PW/2,T+PH/2,PH*0.12,0,Math.PI*2);ctx.stroke();
@@ -1721,154 +1733,59 @@ function drawFormation(data,teamKey){
   ctx.beginPath();ctx.moveTo(L+PW/2-gw/2,B);ctx.lineTo(L+PW/2-gw/2,B+6);ctx.lineTo(L+PW/2+gw/2,B+6);ctx.lineTo(L+PW/2+gw/2,B);ctx.stroke();
   ctx.beginPath();ctx.moveTo(L+PW/2-gw/2,T);ctx.lineTo(L+PW/2-gw/2,T-6);ctx.lineTo(L+PW/2+gw/2,T-6);ctx.lineTo(L+PW/2+gw/2,T);ctx.stroke();
 
-  const starters=data.players.slice(0,11);
-  const catCol={gk:'rgba(59,130,246,0.9)',def:'rgba(74,122,217,0.85)',mid:'rgba(80,200,120,0.85)',fwd:'rgba(231,76,60,0.85)'};
-  const catOf=p=>{const p0=p.p;return p0===0?'gk':[1,2,3].includes(p0)?'def':[4,5,6,7,8].includes(p0)?'mid':'fwd'};
-
-  const gk=starters.filter(p=>p.p===0);
-  const defs=starters.filter(p=>[1,2,3].includes(p.p));
-  const dmfs=starters.filter(p=>p.p===4);
-  const cmfs=starters.filter(p=>[5,6,7].includes(p.p));
-  const amfs=starters.filter(p=>p.p===8);
-  const mids=[...dmfs,...cmfs,...amfs];
-  const fwds=starters.filter(p=>[9,10,11,12].includes(p.p));
+  const slots=getFormationSlots(data);
+  const n=Math.min(slots.length,data.players.length);
+  const starters=data.players.slice(0,n);
 
   const R2=12;
 
-  function distributeX(players,left,right){
-    const n=players.length;
-    if(n===0)return[];
-    if(n===1)return[{x:(left+right)/2,player:players[0]}];
-    const step=(right-left)/(n-1);
-    return players.map((pl,i)=>({x:left+step*i,player:pl}));
-  }
-
-  function makeRow(players,yPct,left,right){
-    return distributeX(players,left,right).map(r=>({...r,y:yPct}));
-  }
-
-  function spreadRow(row){
-    if(row.length<=1)return row;
-    row.sort((a,b)=>a.x-b.x);
-    const n=row.length;
-    const minX=row[0].x,maxX=row[n-1].x;
-    const span=maxX-minX;
-    const needed=R2*2.2*(n-1);
-    if(span<needed){
-      const cx=(minX+maxX)/2;
-      const half=needed/2;
-      const newMin=cx-half,newMax=cx+half;
-      if(newMin<4){const s=4-newMin;for(const r of row)r.x+=s}
-      else if(newMax>96){const s=96-newMax;for(const r of row)r.x+=s}
-      const nMin=row[0].x,nMax=row[n-1].x;
-      const nSpan=nMax-nMin;
-      for(let i=0;i<n;i++){
-        row[i].x=nSpan>0?nMin+i*(nSpan)/(n-1):(nMin+nMax)/2;
-      }
-    }
-    row.forEach(r=>{r.x=Math.max(4,Math.min(96,r.x))});
-    return row;
-  }
-
-  const hasWideMids=cmfs.some(p=>[6,7].includes(p.p));
-  const hasWideFwds=fwds.some(p=>[9,10].includes(p.p));
-
-  let yGK=93,yDEF=75,yDMF=63,yMID=48,yAMF=36,yFWD=22;
-
-  if(dmfs.length===0&&cmfs.length<=2&&amfs.length>=1){
-    yDEF=76;yMID=52;yAMF=36;yFWD=22;
-  }else if(dmfs.length>=1&&cmfs.length<=1&&amfs.length===0){
-    yDEF=76;yDMF=60;yMID=46;yFWD=22;
-  }
-
-  const lines=[];
-  lines.push(...makeRow(gk,yGK,40,60));
-
-  const defRange=hasWideMids?[8,92]:[12,88];
-  lines.push(...makeRow(defs,yDEF,defRange[0],defRange[1]));
-
-  if(dmfs.length){
-    lines.push(...makeRow(dmfs,yDMF,25,75));
-  }
-
-  if(cmfs.length){
-    const midLeft=cmfs.filter(p=>p.p===6);
-    const midRight=cmfs.filter(p=>p.p===7);
-    const midCenter=cmfs.filter(p=>p.p===5);
-    if(midLeft.length||midRight.length){
-      const midRange=[8,92];
-      const placed=[];
-      if(midLeft.length)placed.push({x:12,player:midLeft[0]});
-      if(midRight.length)placed.push({x:88,player:midRight[0]});
-      if(midCenter.length){
-        const cx=(midLeft.length?12:50)+(midRight.length?88:50);
-        const avgCx=cx/(1+(midLeft.length?1:0)+(midRight.length?1:0));
-        for(const p of midCenter)placed.push({x:avgCx,player:p});
-      }
-      for(const p of placed)lines.push({...p,y:yMID});
-    }else{
-      lines.push(...makeRow(cmfs,yMID,15,85));
-    }
-  }
-
-  if(amfs.length){
-    lines.push(...makeRow(amfs,yAMF,20,80));
-  }
-
-  const fwdLeft=fwds.filter(p=>p.p===9);
-  const fwdRight=fwds.filter(p=>p.p===10);
-  const fwdCenter=fwds.filter(p=>[11,12].includes(p.p));
-  if(fwdLeft.length||fwdRight.length){
-    const placed=[];
-    if(fwdLeft.length)placed.push({x:14,player:fwdLeft[0]});
-    if(fwdRight.length)placed.push({x:86,player:fwdRight[0]});
-    if(fwdCenter.length){
-      const cx=(fwdLeft.length?14:50)+(fwdRight.length?86:50);
-      const avgCx=cx/(1+(fwdLeft.length?1:0)+(fwdRight.length?1:0));
-      for(const p of fwdCenter)placed.push({x:avgCx,player:p});
-    }
-    for(const p of placed)lines.push({...p,y:yFWD});
-  }else{
-    lines.push(...makeRow(fwds,yFWD,15,85));
-  }
-
-  for(const y of [yDEF,yDMF,yMID,yAMF,yFWD]){
-    const row=lines.filter(r=>r.y===y);
-    if(row.length>1)spreadRow(row);
-  }
+  // Group starters by pitch level, preserving slot order.
+  const groups={gk:[],def:[],dmf:[],cmf:[],amf:[],fwd:[]};
+  starters.forEach((pl,i)=>{groups[levelOf(slots[i])].push({player:pl,slot:slots[i],i})});
 
   const plc=[];
-  for(const r of lines){
-    const px=L+r.x/100*PW;
-    const py=T+r.y/100*PH;
-    const cat=catOf(r.player);
-    plc.push({player:r.player,px,py,cat,pos:r.player.p,idx:starters.indexOf(r.player)});
-  }
+  LEVEL_ORDER.forEach(lv=>{
+    const items=groups[lv];
+    if(!items.length)return;
+    // Order left -> centre -> right using the position code side.
+    items.sort((a,b)=>(SIDE_OF[a.slot]-SIDE_OF[b.slot])||(a.i-b.i));
+    const k=items.length;
+    const range=k<=1?[50,50]:k===2?[38,62]:k===3?[25,75]:k===4?[12,88]:[8,92];
+    const step=k>1?(range[1]-range[0])/(k-1):0;
+    const y=LEVEL_Y[lv];
+    items.forEach((it,j)=>{
+      const x=range[0]+step*j;
+      plc.push({player:it.player,px:L+x/100*PW,py:T+y/100*PH,cat:LEVEL_CAT[lv],slot:it.slot,idx:it.i});
+    });
+  });
 
+  // --- Player markers ---
   for(const p of plc){
     const g=ctx.createRadialGradient(p.px,p.py,R2*0.5,p.px,p.py,R2*2.5);
-    g.addColorStop(0,catCol[p.cat].replace('0.85','0.15').replace('0.9','0.15'));
+    g.addColorStop(0,CAT_GLOW[p.cat]);
     g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.px,p.py,R2*2.5,0,Math.PI*2);ctx.fill();
   }
   for(const p of plc){
     ctx.beginPath();ctx.arc(p.px,p.py,R2,0,Math.PI*2);
-    ctx.fillStyle=catCol[p.cat];ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1.2;ctx.stroke();
+    ctx.fillStyle=CAT_COL[p.cat];ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1.2;ctx.stroke();
 
-    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.textAlign='center';
+    ctx.fillStyle='#ffffff';ctx.textBaseline='middle';
     ctx.font='bold 11px monospace';
     ctx.fillText(p.player.s,p.px,p.py-5);
-    ctx.font='bold 8px sans-serif';
-    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.font='bold 9px sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.95)';
     ctx.fillText(Math.round(p.player.o),p.px,p.py+7);
 
-    let nm=p.player.n;if(nm.length>11)nm=nm.slice(0,9)+'\u2026';
-    ctx.fillStyle='#c8d8c8';ctx.font='10px sans-serif';ctx.textBaseline='top';
+    let nm=p.player.n;if(nm.length>12)nm=nm.slice(0,10)+'\u2026';
+    ctx.fillStyle='#eaf6ea';ctx.font='600 10px sans-serif';ctx.textBaseline='top';
     ctx.fillText(nm,p.px,p.py+R2+3);
 
-    ctx.fillStyle='#6a8a6a';ctx.font='8px sans-serif';ctx.textBaseline='top';
-    ctx.fillText(POS_NAMES[p.player.p],p.px,p.py+R2+14);
+    const slotPos=(p.slot>=0&&p.slot<POS_NAMES.length)?POS_NAMES[p.slot]:'?';
+    ctx.fillStyle='#c6e0c6';ctx.font='9px sans-serif';ctx.textBaseline='top';
+    ctx.fillText(slotPos,p.px,p.py+R2+15);
   }
 
   canvas.style.cursor='pointer';
@@ -1944,7 +1861,7 @@ function sortSquad(col){
 function renderPanel(data,teamKey){
   squadTeamKey=teamKey;
   const c=document.getElementById('panelContent');
-  c.innerHTML=renderPanelHeader(data)+renderStrengths(data)+renderFormation(data,teamKey)+renderSquad(data,teamKey);
+  c.innerHTML=renderPanelHeader(data)+renderFormation(data,teamKey)+renderSquad(data,teamKey);
   drawFormation(data,teamKey);
 }
 

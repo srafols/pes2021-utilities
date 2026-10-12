@@ -45,6 +45,16 @@ GK_FIELDS = [
 ]
 
 
+def json_num(v):
+    """Round to 1 decimal and emit whole numbers without a trailing .0.
+
+    Keeps the generated JSON byte-stable with the previously committed data
+    (which came from a JS toolchain where 80.0 serialises as 80).
+    """
+    f = round(float(v), 1)
+    return int(f) if f == int(f) else f
+
+
 
 # Position-weighted OVR: for each position index, weight per stat (0..24 = 20 generic + 5 gk)
 # Order: ap,bc,tp,lp,lf,fn,pk,cr,sp,ac,jm,pc,bl,st,bw,ag,dp,hd,db,kp, gkAwa,gkCat,gkRea,gkCle,gkRef
@@ -225,8 +235,15 @@ def team_ovr(players):
     return round(avg, 1), per_stat
 
 def select_starting_xi(players, formation_positions):
+    """Fill the 11 tactic slots, best player first.
+
+    Returns (roster, filled_slots) where roster has the starters (in slot
+    order) followed by the bench, and filled_slots lists the tactic slot
+    indices that were actually filled, so a formation code can be attached
+    to each starter.
+    """
     if not players:
-        return players
+        return players, []
     free = list(players)
     starters = [None] * 11
     pos_names = POS_ORDER
@@ -246,10 +263,11 @@ def select_starting_xi(players, formation_positions):
             used.add(best)
             starters[slot] = free[best]
 
-    starters = [s for s in starters if s is not None]
+    filled_slots = [s for s in range(len(starters)) if starters[s] is not None]
+    roster = [starters[s] for s in filled_slots]
     bench = [p for i, p in enumerate(free) if i not in used]
     bench.sort(key=lambda p: p["shirtNumber"] if p["shirtNumber"] and 1 <= p["shirtNumber"] <= 99 else 999)
-    return starters + bench
+    return roster + bench, filled_slots
 
 def extract_ted(filepath):
     with open(filepath, "rb") as f:
@@ -269,7 +287,10 @@ def extract_ted(filepath):
         pl["ovr"] = player_ovr(pl)
     tactics = data[1040:1668]
     formation_positions = list(tactics[4:15])
-    players = select_starting_xi(players, formation_positions)
+    players, filled_slots = select_starting_xi(players, formation_positions)
+    # Position code for each starter (aligned with players[0:len]) so the
+    # frontend can place players on the pitch by their tactic slot.
+    starter_formation = [formation_positions[s] for s in filled_slots]
     ovr, per_stat = team_ovr(players)
     return {
         "teamName": team_name,
@@ -277,6 +298,7 @@ def extract_ted(filepath):
         "stadium": stadium,
         "playerCount": len(players),
         "players": players,
+        "formation": starter_formation,
         "ovr": ovr,
         "perStat": per_stat,
     }
@@ -289,9 +311,28 @@ def find_ted_files(root):
                 results.append(os.path.join(dirpath, f))
     return results
 
+def resolve_patch_base(cli_arg):
+    """Locate the directory that holds the patch folders.
+
+    Order: CLI argument, then $PES_PATCH_BASE, then next to the script /
+    project root if the patch folders are found there.
+    """
+    if cli_arg:
+        return os.path.abspath(os.path.expanduser(cli_arg))
+    env = os.environ.get("PES_PATCH_BASE")
+    if env:
+        return os.path.abspath(os.path.expanduser(env))
+    here = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(here)
+    for cand in (project_root, here):
+        if any(os.path.isdir(os.path.join(cand, d)) for d in TEAM_DIRS):
+            return cand
+    return project_root
+
 def main():
-    base = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(base, "data")
+    base = resolve_patch_base(sys.argv[1] if len(sys.argv) > 1 else None)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_DIR = os.path.join(project_root, "data")
     FULL_TO_FOLDER_ID = {
         'BEST OF WORLD CUPS - 195 TEAMS - PES 2021':'bestWorldCups',
         'SUPER LEAGUE - PES 2021 - 194 CLASSIC TEAMS':'superLeague',
@@ -322,6 +363,13 @@ def main():
             "teams": teams_in_folder,
         })
         print(f"  {folder}: {len(teams_in_folder)} teams extracted", file=sys.stderr)
+
+    total_teams = sum(len(p["teams"]) for p in output)
+    if total_teams == 0:
+        print(f"ERROR: no .ted files found under {base}.", file=sys.stderr)
+        print("Pass the patch directory as an argument or set PES_PATCH_BASE.", file=sys.stderr)
+        print("Refusing to overwrite existing data.", file=sys.stderr)
+        sys.exit(1)
 
     # Star ratings based on fixed OVR thresholds (0-127 scale, position-weighted)
     def star_from_ovr(ovr):
@@ -360,8 +408,9 @@ def main():
                 "teamName": t["teamName"],
                 "shortName": t["shortName"],
                 "stadium": t["stadium"],
-                "ovr": t["ovr"],
+                "ovr": json_num(t["ovr"]),
                 "starRating": t["starRating"],
+                "formation": t.get("formation", []),
                 "players": [],
             }
             for di, pl in enumerate(t["players"]):
@@ -380,7 +429,7 @@ def main():
                     "sl": pl["skillsLo"],
                     "sh": pl["skillsHi"],
                     "pp": sum((pl["positionProfs"].get(p,0)&3)<<(i*2) for i,p in enumerate(POS_ORDER)),
-                    "o": pl_ovr,
+                    "o": json_num(pl_ovr),
 
                     "ap": pl["attackingProwess"],
                     "bc": pl["ballControl"],
@@ -410,7 +459,7 @@ def main():
                 })
                 player_index.append({
                     "n": pl["name"],
-                    "o": pl_ovr,
+                    "o": json_num(pl_ovr),
                     "p": POS_ORDER.index(pl["registeredPosition"]),
                     "tk": team_key,
                     "di": di,
@@ -430,7 +479,7 @@ def main():
     }
     light_path = os.path.join(DATA_DIR, "light.json")
     with open(light_path, "w", encoding="utf-8") as f:
-        json.dump(js_light, f, ensure_ascii=False)
+        json.dump(js_light, f, ensure_ascii=False, separators=(",", ":"))
     print(f"  Light JSON ({os.path.getsize(light_path)//1024}KB) written to {light_path}", file=sys.stderr)
 
     full_dir = os.path.join(DATA_DIR, "full")
@@ -439,7 +488,7 @@ def main():
         folder_id = FULL_TO_FOLDER_ID.get(patch_name, patch_name.replace(' ', '_'))
         full_path = os.path.join(full_dir, folder_id + ".json")
         with open(full_path, "w", encoding="utf-8") as f:
-            json.dump(patch_data, f, ensure_ascii=False)
+            json.dump(patch_data, f, ensure_ascii=False, separators=(",", ":"))
         print(f"  Full JSON ({os.path.getsize(full_path)//1024}KB) written to {full_path}", file=sys.stderr)
 
 if __name__ == "__main__":

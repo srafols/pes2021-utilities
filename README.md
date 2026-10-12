@@ -50,7 +50,7 @@ Then open **http://localhost:8000**.
 ## 🔧 Data Extraction
 
 ```bash
-python3 scripts/extract_teams.py
+python3 scripts/extract_teams.py "/path/to/patches"   # or set PES_PATCH_BASE
 ```
 
 Processes `.ted` files (14820 bytes, PES 2021 PS4) and outputs `data/ted_data.json`, `data/light.json`, and `data/full/*.json`.
@@ -59,7 +59,7 @@ Processes `.ted` files (14820 bytes, PES 2021 PS4) and outputs `data/ted_data.js
 
 - 🎲 **Team raffle** with animated spin and sound (Web Audio API)
 - 🔍 **Player search** with accent-insensitive matching, filters by position/patch/foot/skill
-- 📋 **Team detail panel** with formation canvas, squad table, spider chart (Chart.js)
+- 📋 **Team detail panel** with real tactic-slot formation canvas (shape label + bench), squad table, spider chart (Chart.js)
 - 👤 **Player modal** with 20-stats radar chart and skill tags
 - 📖 **Skills glossary** with Catalan names and descriptions
 
